@@ -515,7 +515,7 @@ export class OfficeWorld {
     this.flights.push({
       pts,
       t: 0,
-      dur: Math.max(900, pts.length * 120),
+      dur: Math.min(5000, Math.max(900, pts.length * 120)),
       kind: "stamped",
       arc: 6,
       onDone: () => {

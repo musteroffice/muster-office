@@ -57,7 +57,7 @@ describe("sprite set registry", () => {
 
 describe("bitmap font", () => {
   it("has a 3x5 glyph for every character the UI prints", () => {
-    for (const ch of "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,:;-+/|%()[]!?><=_'\"*#@& ·") {
+    for (const ch of "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,:;-+/|%$()[]!?><=_'\"*#@& ·") {
       const g = glyph(ch);
       expect(g).toHaveLength(5);
       for (const row of g) expect(row).toHaveLength(3);

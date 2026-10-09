@@ -153,6 +153,8 @@ export function layoutFloor(input: { lanes: readonly LaneView[]; rackSlots?: num
       main: i === 1,
     }));
     for (const d of desks) fill(blocked, w, d.rect);
+    // A proposed lane is only a dotted outline of a desk: nobody walks through it.
+    if (lane.state === "proposed") fill(blocked, w, { x: bx, y: by + 1, w: 11, h: 5 });
     // The sign row is decoration, not floor.
     fill(blocked, w, { x: bx, y: by, w: 11, h: 1 });
 

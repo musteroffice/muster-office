@@ -276,7 +276,7 @@ describe("delivery tokens, queue and desk", () => {
     w.sync(v.project, v.jobs, v.now, false);
     expect(w.tokens.get("auth-rework")?.mode).toBe("flight");
     expect(w.flights.some((f) => f.kind === "stamped")).toBe(true);
-    run(w, 6000, v.now);
+    run(w, 8000, v.now);
     expect(w.tokens.get("auth-rework")).toMatchObject({ pad: 0, to: 0, mode: "rest" });
     v = viewAt("harbor-api", 20);
     w.sync(v.project, v.jobs, v.now, false);

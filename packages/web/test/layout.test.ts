@@ -78,6 +78,18 @@ describe("layoutFloor", () => {
     }
   });
 
+  it("makes proposed pods impassable while everything else stays reachable", () => {
+    const mixed = [...lanes(4), lane("idea-a", { state: "proposed", createdAt: "2026-10-02T00:00:00Z" }), lane("idea-b", { state: "proposed", createdAt: "2026-10-03T00:00:00Z" })];
+    const l = layoutFloor({ lanes: mixed });
+    const idea = l.bays.find((b) => b.lane.slug === "idea-a")!;
+    for (const d of idea.desks) expect(isWalkable(l, d.seat.x, d.seat.y)).toBe(false);
+    expect(isWalkable(l, idea.origin.x + 3, idea.origin.y + 3)).toBe(false); // the gap between desks
+    expect(reachable(l, idea.stand[0]!)).toBe(true); // the aisle in front of it is still open
+    for (const bay of l.bays.filter((b) => b.lane.state !== "proposed")) for (const d of bay.desks) expect(reachable(l, d.seat)).toBe(true);
+    for (const t of l.front.trays) expect(reachable(l, t.drop)).toBe(true);
+    for (const q of l.queue) expect(reachable(l, q)).toBe(true);
+  });
+
   it("walls off the machine room and its racks, but not the lobby", () => {
     const l = layoutFloor({ lanes: lanes(2), rackSlots: 14 });
     expect(l.machine.racks).toHaveLength(14);
