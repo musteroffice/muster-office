@@ -1,0 +1,13 @@
+{
+  "name": "@muster-office/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@hono/node-server": "^1.19.0",
+    "@muster-office/shared": "*",
+    "chokidar": "^4.0.3",
+    "hono": "^4.9.0"
+  }
+}

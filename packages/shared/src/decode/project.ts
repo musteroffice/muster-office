@@ -54,6 +54,8 @@ export interface DecodedProject {
   project: ProjectView;
   /** Server-side only. Never copied into a view. */
   sessions: AgentSession[];
+  /** packet id -> report path as written in the catalog. Untrusted; server-side only. */
+  reportPaths: Record<string, string>;
 }
 
 export type ProjectDecode = { ok: true; value: DecodedProject } | { ok: false; error: string };
@@ -302,9 +304,13 @@ export function decodeProject(text: string): ProjectDecode {
   });
 
   const packets: PacketView[] = [];
+  const reportPaths: Record<string, string> = {};
   packetsRaw.forEach((p, i) => {
     const d = decodePacket(p, issues, i);
-    if (d) packets.push(d);
+    if (d) {
+      packets.push(d);
+      if (isRec(p) && typeof p["report"] === "string") reportPaths[d.id] = p["report"];
+    }
   });
 
   const headline = raw["headline"];
@@ -331,5 +337,5 @@ export function decodeProject(text: string): ProjectDecode {
     notes: issues.notes,
   };
   if (project.policy.deployLevel !== null) project.deploy = { level: project.policy.deployLevel as DeployLevel, source: "policy", notes: [] };
-  return { ok: true, value: { project, sessions } };
+  return { ok: true, value: { project, sessions, reportPaths } };
 }

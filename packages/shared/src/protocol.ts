@@ -37,7 +37,7 @@ const KEY: { [C in CollectionName]: (item: CollectionItems[C]) => string } = {
   agents: (i) => i.name,
   packets: (i) => i.id,
   desk: (i) => i.id,
-  owner: (i) => i.uri,
+  owner: (i) => i.id,
 };
 
 export function keyOf<C extends CollectionName>(coll: C, item: CollectionItems[C]): string {
@@ -282,7 +282,7 @@ function putItem(p: ProjectView, op: Extract<Op, { op: "put" }>, changes: Change
     }
     case "owner": {
       const item = op.item as OwnerNoteView;
-      return { ...p, owner: upsert(p.owner, (o) => o.uri, item) };
+      return { ...p, owner: upsert(p.owner, (o) => o.id, item) };
     }
   }
 }
@@ -310,7 +310,7 @@ function delItem(p: ProjectView, coll: CollectionName, key: string, changes: Cha
       return { ...p, desk: p.desk.filter((d) => d.id !== key) };
     }
     case "owner":
-      return { ...p, owner: p.owner.filter((o) => o.uri !== key) };
+      return { ...p, owner: p.owner.filter((o) => o.id !== key) };
   }
 }
 

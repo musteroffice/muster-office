@@ -138,7 +138,7 @@ export interface DeskItemView {
 }
 
 export interface OwnerNoteView {
-  uri: string;
+  /** First 16 hex chars of the note cid. The full muster:// uri embeds a session id and is never sent. */
   id: string;
   ts: string;
   kind: OwnerKind | "unknown";

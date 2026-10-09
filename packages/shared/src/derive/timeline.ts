@@ -136,7 +136,7 @@ export function seedTimeline(snap: Snapshot): TimelineEvent[] {
     }
     for (const o of p.owner) {
       out.push({
-        id: `ow:${p.slug}:${o.uri}`,
+        id: `ow:${p.slug}:${o.id}`,
         ts: ms(o.ts, snap.now),
         kind: "owner",
         project: p.slug,
@@ -305,10 +305,10 @@ function projectEvents(old: ProjectView, p: ProjectView, now: number, out: Timel
     }
   }
 
-  const oldOwner = new Set(old.owner.map((o) => o.uri));
+  const oldOwner = new Set(old.owner.map((o) => o.id));
   for (const o of p.owner) {
-    if (oldOwner.has(o.uri)) continue;
-    out.push(mk(`ow:${slug}:${o.uri}`, ms(o.ts, now), "owner", slug, o.author, o.lane, `${o.author} ${o.kind}: ${o.title}`,
+    if (oldOwner.has(o.id)) continue;
+    out.push(mk(`ow:${slug}:${o.id}`, ms(o.ts, now), "owner", slug, o.author, o.lane, `${o.author} ${o.kind}: ${o.title}`,
       o.kind === "blocked" ? "error" : o.kind === "question" || o.kind === "action" ? "warn" : "info"));
   }
 }

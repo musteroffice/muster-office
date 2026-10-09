@@ -92,7 +92,7 @@ export interface RawOwnerNote {
   project: string | null;
   lane: string | null;
   refs: string[];
-  replyParent: string | null;
+  replyParentCid: string | null;
   delivery: string | null;
   mentioned: string[];
 }
@@ -123,7 +123,7 @@ export function decodeOwnerLine(line: string): RawOwnerNote | null {
   }
   const kindRaw = raw["kind"];
   const reply = isRec(raw["reply"]) ? raw["reply"] : null;
-  const parent = reply && isRec(reply["parent"]) ? str(reply["parent"]["uri"]) : "";
+  const parent = reply && isRec(reply["parent"]) ? str(reply["parent"]["cid"]) : "";
   const delivery = isRec(raw["delivery"]) ? normaliseDelivery(raw["delivery"]["status"]) : null;
   const mentioned: string[] = [];
   for (const f of arr(raw["facets"])) {
@@ -140,7 +140,7 @@ export function decodeOwnerLine(line: string): RawOwnerNote | null {
     project: typeof raw["project"] === "string" ? raw["project"] : null,
     lane: typeof raw["lane"] === "string" ? raw["lane"] : null,
     refs: strArr(raw["refs"]),
-    replyParent: parent || null,
+    replyParentCid: parent || null,
     delivery,
     mentioned,
   };
@@ -163,18 +163,22 @@ export function splitOwnerText(text: string, mentioned: readonly string[]): { ti
   return nl < 0 ? { title: t, body: "" } : { title: t.slice(0, nl), body: t.slice(nl + 1) };
 }
 
+/** Public id of an owner note: a prefix of its content id, never the session-bearing uri. */
+export function ownerId(cid: string): string {
+  return cid.slice(0, 16);
+}
+
 export function buildOwnerView(note: RawOwnerNote, authorName: string | null): OwnerNoteView {
   const { title, body } = splitOwnerText(note.text, note.mentioned);
   return {
-    uri: note.uri,
-    id: shortId(note.cid, 12),
+    id: ownerId(note.cid),
     ts: note.createdAt,
     kind: note.kind,
     author: authorName ?? shortId(note.author, 8),
     title: clean(title, 200),
     hasBody: body.trim().length > 0,
     lane: note.lane ? clean(note.lane, 64) : null,
-    replyTo: note.replyParent,
+    replyTo: note.replyParentCid ? ownerId(note.replyParentCid) : null,
     delivery: note.delivery,
   };
 }
