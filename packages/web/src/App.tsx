@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { BoardView } from "./components/Board";
 import { OfficeView } from "./components/OfficeView";
 import { SidePanel } from "./components/SidePanel";
+import { SpriteSheet } from "./components/SpriteSheet";
 import { Timeline } from "./components/Timeline";
 import { TopBar } from "./components/TopBar";
 import { loadPref } from "./lib/prefs";
@@ -40,6 +41,11 @@ function LiveRegion() {
 }
 
 export default function App() {
+  if (window.location.hash === "#sprites") return <SpriteSheet />;
+  return <Shell />;
+}
+
+function Shell() {
   const view = useOffice((s) => s.view);
   useTheme();
   useEffect(() => connectEvents(), []);

@@ -17,6 +17,11 @@ export default tseslint.config(
     },
   },
   {
+    // Scripts that drive a browser evaluate code inside the page.
+    files: ["scripts/screenshot.mjs", "e2e/**/*.ts"],
+    languageOptions: { globals: { ...globals.browser } },
+  },
+  {
     files: ["packages/web/**/*.{ts,tsx}"],
     plugins: { "react-hooks": reactHooks },
     languageOptions: { globals: { ...globals.browser } },
