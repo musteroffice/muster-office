@@ -30,6 +30,8 @@ const STATE_CODE: Record<string, string> = {
 export class SceneRenderer {
   private stat: StaticScene | null = null;
   private sig = "";
+  private sigRev = -1;
+  private sigHour = -1;
   /** Frames drawn, for tests and perf readouts. */
   frames = 0;
 
@@ -37,12 +39,17 @@ export class SceneRenderer {
 
   invalidate(): void {
     this.sig = "";
+    this.sigRev = -1;
   }
 
   private ensureStatic(): StaticScene | null {
     const w = this.world;
     if (!w.project) return null;
-    const sig = staticSignature(w.project, w.layout, Math.floor(w.hour * 2), w.rackJobs().length);
+    const hourBucket = Math.floor(w.hour * 2);
+    if (this.stat && this.sigRev === w.revision && this.sigHour === hourBucket) return this.stat;
+    this.sigRev = w.revision;
+    this.sigHour = hourBucket;
+    const sig = staticSignature(w.project, w.layout, hourBucket, w.rackJobs().length);
     if (sig !== this.sig || !this.stat) {
       this.stat = buildStatic({ project: w.project, layout: w.layout, hour: w.hour, frontSeats: 2 });
       this.sig = sig;
@@ -295,7 +302,8 @@ export class SceneRenderer {
     if (count > 0) {
       const label = `${kind === "packets" ? "PKT" : kind === "blocked" ? "BLK" : kind === "approval" ? "APR" : "DEC"} ${count}`;
       const color = kind === "blocked" ? "#ff8a8a" : kind === "approval" ? "#ffb870" : kind === "decision" ? "#ffe17a" : "#9fc4ff";
-      drawTextCentered(g, label, bx + 14, f.y + 17 + 1, color, C.ink);
+      const flameTop = tier > 0 ? stackTop - sp.flame(tier as 1 | 2 | 3 | 4, 0).height : stackTop;
+      drawTextCentered(g, label, bx + 14, Math.round(flameTop) - 9, color, C.ink);
     }
   }
 
@@ -392,8 +400,8 @@ export class SceneRenderer {
     const w = this.world;
     const running = w.jobs.filter((j) => j.state === "running").length;
     const lost = w.jobs.filter((j) => j.lost).length;
-    drawText(g, `JOBS ${running}`, f.x + 7, f.y + 3, C.screenOn);
-    drawText(g, lost > 0 ? `${lost} LOST` : "ALL OK", f.x + f.canvas.width - 26, f.y + 4, lost > 0 ? C.red : C.ledGreen);
+    drawText(g, `${running} RUN`, f.x + 7, f.y + 3, C.screenOn);
+    drawText(g, lost > 0 ? `${lost} LOST` : "OK", f.x + f.canvas.width - 26 + (lost > 0 ? 0 : 6), f.y + 4, lost > 0 ? C.red : C.ledGreen);
   }
 
   /* -------------------------------------------------------------------- actors */
@@ -433,6 +441,9 @@ export class SceneRenderer {
     const top = Math.round(a.y - 24);
     const t = w.time;
     const bob = w.reduced ? 0 : Math.round(Math.sin(t / 260 + a.phase * 6) * 1);
+    // Busy agents mutter now and then: a speech bubble for ~2 s out of every ~12 s, out of step with each other.
+    const mutter = !w.reduced && a.kind === "agent" && a.shown === "running" && a.sitting && a.emote === "none" && ((t / 1000 + a.phase * 12) % 12) < 2;
+    if (mutter) g.drawImage(sp.prop("bubble-dots", Math.floor(t / 300)), x + 5, top - 8 + bob);
     switch (a.emote) {
       case "dots":
         g.drawImage(sp.prop("bubble-dots", w.reduced ? 0 : Math.floor(t / 300)), x + 5, top - 8 + bob);

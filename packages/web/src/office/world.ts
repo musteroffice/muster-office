@@ -135,6 +135,8 @@ export class OfficeWorld {
   private dropping = new Set<string>();
   time = 0;
   hour = 12;
+  /** Bumped whenever new data is synced; lets the renderer skip recomputing the static signature. */
+  revision = 0;
   reduced: boolean;
   /** Debug and test hooks. */
   log: TransitionLogEntry[] = [];
@@ -164,6 +166,7 @@ export class OfficeWorld {
     const switched = this.project?.slug !== project.slug;
     this.project = project;
     this.jobs = jobs;
+    this.revision++;
     this.lastNow = now;
     this.hour = HOURS(now);
     this.flow = flowInfo(project, now);

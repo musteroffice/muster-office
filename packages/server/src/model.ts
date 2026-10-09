@@ -57,6 +57,8 @@ interface ProjectSlot {
 
 const TIMELINE_CAP = 500;
 const OWNER_VIEW_CAP = 100;
+/** Per queue file, so a server left running for weeks does not grow without bound. */
+const OWNER_NOTES_KEPT = 2000;
 const JOBS_VIEW_CAP = 60;
 const RELAY_RECENT_CAP = 100;
 const BODY_CAP = 8_000;
@@ -169,7 +171,7 @@ export class OfficeModel implements Sink {
       const n = decodeOwnerLine(line);
       if (n) added.push(n);
     }
-    if (added.length) notes = [...notes, ...added];
+    if (added.length) notes = [...notes, ...added].slice(-OWNER_NOTES_KEPT);
     else if (!reset) return;
     this.owner.set(file, notes);
     this.touch();

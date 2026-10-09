@@ -302,11 +302,11 @@ function trayBody(g: CanvasRenderingContext2D, x: number, y: number, kind: strin
 
 function drawDeskArea(g: CanvasRenderingContext2D, layout: FloorLayout): void {
   const lt = layout.lobbyTop;
-  // back wall decor behind the operators
-  rect(g, 11 * TILE, lt * TILE, 13 * TILE, 2 * TILE, C.wallDark);
-  frame(g, 11 * TILE, lt * TILE, 13 * TILE, 2 * TILE, C.trim);
-  drawTextCentered(g, "THE DESK", 17.5 * TILE, lt * TILE + 6, C.gold, C.ink);
-  drawTextCentered(g, "BLOCKED > APPROVAL > DECISION", 17.5 * TILE, lt * TILE + 20, C.metalLight);
+  // back wall decor behind the operators: one row, so name plates have headroom below it
+  rect(g, 11 * TILE, lt * TILE, 13 * TILE, TILE, C.wallDark);
+  frame(g, 11 * TILE, lt * TILE, 13 * TILE, TILE, C.trim);
+  drawTextCentered(g, "THE DESK", 17.5 * TILE, lt * TILE + 2, C.gold, C.ink);
+  drawTextCentered(g, "BLOCKED > APPROVAL > DECISION", 17.5 * TILE, lt * TILE + 9, C.metalLight);
   // door
   const d = rectPx(layout.door.rect);
   rect(g, d.x - 3, d.y - 20, d.w + 6, 24, C.woodDark);
@@ -418,6 +418,35 @@ export interface StaticInput {
   frontSeats: number;
 }
 
+function drawPlant(g: CanvasRenderingContext2D, tx: number, ty: number): void {
+  const x = tx * TILE;
+  const y = ty * TILE;
+  rect(g, x + 4, y + 9, 8, 7, C.woodDark);
+  rect(g, x + 3, y + 9, 10, 2, C.wood);
+  rect(g, x + 4, y + 15, 8, 1, "#00000044");
+  const leaf = [C.greenDark, C.green, "#8be8a0"];
+  for (const [lx, ly, lw, lh, c] of [[3, 3, 4, 7, 0], [9, 2, 4, 8, 0], [6, 0, 4, 10, 1], [4, 5, 3, 4, 1], [9, 5, 3, 4, 2], [7, 3, 2, 5, 2]] as const) rect(g, x + lx, y + ly, lw, lh, leaf[c]!);
+}
+
+function drawWallDecor(g: CanvasRenderingContext2D, layout: FloorLayout): void {
+  // clock
+  const cx = 8 * TILE;
+  const cy = 18;
+  rect(g, cx, cy, 20, 20, C.ink);
+  rect(g, cx + 2, cy + 2, 16, 16, C.white);
+  rect(g, cx + 9, cy + 5, 2, 6, C.ink);
+  rect(g, cx + 9, cy + 9, 5, 2, C.ink);
+  rect(g, cx + 9, cy + 9, 2, 2, C.red);
+  // posters
+  for (const [px, col] of [[36 * TILE, C.teal], [38 * TILE + 4, C.orange]] as const) {
+    rect(g, px, 18, 22, 28, C.ink);
+    rect(g, px + 2, 20, 18, 24, C.paper);
+    rect(g, px + 4, 23, 14, 8, col);
+    for (let i = 0; i < 3; i++) rect(g, px + 4, 34 + i * 3, 14 - (i === 2 ? 5 : 0), 1, C.grayDark);
+  }
+  void layout;
+}
+
 export function buildStatic(input: StaticInput): StaticScene {
   const { layout, project } = input;
   const W = layout.w * TILE;
@@ -429,6 +458,7 @@ export function buildStatic(input: StaticInput): StaticScene {
   drawWall(g, layout, input.hour);
   drawSign(g, layout, project);
   drawTickerFrame(g, layout);
+  drawWallDecor(g, layout);
   drawDeskArea(g, layout);
   drawMachineRoom(g, layout);
 
@@ -452,6 +482,12 @@ export function buildStatic(input: StaticInput): StaticScene {
     if (lane.state === "draining") {
       // a "wind down" banner is drawn dynamically with the dim overlay
     }
+  }
+
+  for (const d of layout.decor) {
+    const [pc, pg] = cv(TILE, TILE);
+    drawPlant(pg, 0, 0);
+    items.push({ id: `plant:${d.x},${d.y}`, x: d.x * TILE, y: d.y * TILE, canvas: pc, sortY: (d.y + 1) * TILE });
   }
 
   // front desk counter

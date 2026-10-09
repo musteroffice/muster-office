@@ -19,6 +19,9 @@ async function openOffice(page: Page, path = "/"): Promise<void> {
 
 test.describe("demo office", () => {
   test("loads, says it is a demo, is live and shows at least one agent", async ({ page }) => {
+    const problems: string[] = [];
+    page.on("console", (m) => m.type() === "error" && problems.push(m.text()));
+    page.on("pageerror", (e) => problems.push(String(e)));
     await openOffice(page);
     await expect(page.getByTestId("demo-badge")).toBeVisible();
     await expect(page.getByTestId("connection")).toContainText("live");
@@ -27,6 +30,10 @@ test.describe("demo office", () => {
     const d = await debug(page);
     expect(d?.frames).toBeGreaterThan(0);
     expect(d?.reduced).toBe(false);
+    // The canvas explains itself to a screen reader, and nothing (CSP included) logs an error.
+    await expect(page.locator("#office-summary")).toContainText("Agents —");
+    await page.waitForTimeout(1500);
+    expect(problems).toEqual([]);
   });
 
   test("receives SSE updates and the timeline fills", async ({ page, request }) => {

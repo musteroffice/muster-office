@@ -26,8 +26,8 @@ afterEach(async () => {
   rmSync(web, { recursive: true, force: true });
 });
 
-const start = async (): Promise<RunningServer> => {
-  server = await startServer({ home: home.home, port: 0, webRoot: web, version: "test", rescanMs: 300 });
+const start = async (rescanMs = 300): Promise<RunningServer> => {
+  server = await startServer({ home: home.home, port: 0, webRoot: web, version: "test", rescanMs });
   return server;
 };
 
@@ -205,9 +205,9 @@ describe("live pipeline", () => {
     }
   });
 
-  it("streams a snapshot, then diffs within about a second of a file change", async () => {
+  it("streams a snapshot, then diffs within about a second of a file change (native watcher, no polling backstop)", async () => {
     home.writeProject(fixtureText("project.valid.json"));
-    const s = await start();
+    const s = await start(600_000);
     const sse = await openSse(`${s.url}/events`);
     const snap = await waitFor(() => sse.snapshot());
     expect(sse.messages[0]?.event).toBe("snapshot");

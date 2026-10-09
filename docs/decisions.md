@@ -73,3 +73,29 @@ original brief is marked **(deviation)**.
     one generic "waiting" character per proposed lane in rank order.
 23. **Mono theme honours `NO_COLOR`.** If the server process has `NO_COLOR` set, the UI defaults to the
     mono theme (the user can still switch).
+
+## Added while building the office
+
+24. **The demo script lives in `@muster-office/shared/demo`**, not in the server, because both the
+    server's simulator and the web tests need the same pure script. It is a separate export, so the
+    browser bundle never includes it.
+25. **Geometry is rebuilt only on structural changes** (lane set, kinds, states, archived flags). Every
+    sync re-points each bay at the current lane object, so delivery stage, deploy level and the static
+    signature always see fresh data. A test caught the stale-lane bug this guards against.
+26. **Bays are 9 tiles tall and the lobby 10**, so name plates always have headroom above heads and
+    never collide with lane signs or the wall captions.
+27. **Backlog is sped up, not just queued.** With several transitions in flight, walkers move up to 3×
+    faster; more than about 30 s of queued movement fast-forwards to the end state. Snapshots (first
+    load, reconnect, project switch) and reduced motion place everyone directly.
+28. **The data path was measured, not assumed.** A unit benchmark pushes 600+ events/min through the
+    diff, reducer and world; a browser test drives a server at about 800 events/min and asserts at
+    least 45 fps and under 8 ms of work per frame (measured here: 60 fps, about 1.8 ms).
+29. **Plants are real obstacles.** Decoration that occupies a tile also blocks it in the walk grid, and
+    the reachability tests still prove every seat, tray, queue spot and operator seat is reachable.
+30. **`scripts/fixture-home.mjs` writes into a throw-away home** (never the server, never a real Muster
+    path) so the non-demo path can be exercised, including by a Playwright test that plays the part of
+    Muster and replaces `project.json` by atomic rename.
+31. **No hard-coded test counts in docs**, so they cannot go stale.
+32. **Not verified against a live Muster install.** None was available. The contract comes from the
+    source at commit `e415c70`; everything real-data-shaped is tested with fixtures that follow the
+    source schemas field for field, plus corrupt, partial and drifted variants.

@@ -146,11 +146,25 @@ export function OfficeView() {
     ? `Office floor of ${project.label}: ${agentCount} agent${agentCount === 1 ? "" : "s"}, ${project.lanes.length} lane${project.lanes.length === 1 ? "" : "s"}. Arrow keys pan, plus and minus zoom, N and P step through agents, Enter selects. The Board view shows the same data as tables.`
     : "Office floor";
 
+  // What a sighted viewer reads off the floor, as text, for assistive tech. The Board view has the full tables.
+  const summary = useMemo(() => {
+    if (!project) return "";
+    const f = flowInfo(project, now);
+    const byState = new Map<string, string[]>();
+    for (const a of project.agents) byState.set(a.state, [...(byState.get(a.state) ?? []), a.name]);
+    const agents = [...byState].map(([s, names]) => `${s}: ${names.join(", ")}`).join("; ");
+    const open = project.desk.filter((d) => d.open).length;
+    return `${f.line}. Agents — ${agents || "none"}. Desk: ${open} open item${open === 1 ? "" : "s"}${isDeadDesk(project) ? ", no live desk" : ""}. Machine room: ${(jobs ?? []).filter((j) => j.state === "running").length} running job(s), ${(jobs ?? []).filter((j) => j.lost).length} lost.`;
+  }, [project, jobs, now]);
+
   const nudge = useCallback((fn: (e: OfficeEngine) => void) => engineRef.current && fn(engineRef.current), []);
 
   return (
     <div className="office" data-testid="office">
-      <canvas ref={canvasRef} className="office-canvas" tabIndex={0} role="application" aria-label={label} aria-roledescription="animated office" data-testid="office-canvas" />
+      <canvas ref={canvasRef} className="office-canvas" tabIndex={0} role="application" aria-label={label} aria-roledescription="animated office" aria-describedby="office-summary" data-testid="office-canvas" />
+      <p id="office-summary" className="sr-only">
+        {summary}
+      </p>
       {!loaded && <div className="office-empty muted">Waiting for the first snapshot…</div>}
       {loaded && !project && <div className="office-empty muted">No project to show. Muster has not registered any, or the registry is empty.</div>}
       <div className="hud" role="group" aria-label="Camera">

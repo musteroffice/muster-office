@@ -101,6 +101,8 @@ export interface FloorLayout {
   };
   door: { rect: Rect; entry: Tile; spawn: { x: number; y: number } };
   queue: Tile[];
+  /** Decoration that also blocks its tile (potted plants). */
+  decor: Tile[];
   machine: { room: Rect; glassX: number; racks: RackSlot[]; console: Rect };
 }
 
@@ -216,6 +218,12 @@ export function layoutFloor(input: { lanes: readonly LaneView[]; rackSlots?: num
   for (const x of [1, 2]) for (let k = 0; k < 6; k++) queue.push({ x, y: lobbyTop + 7 - k });
   queue.length = Math.min(queue.length, QUEUE_CAP);
 
+  // Plants: one in each gutter between the bay columns, one by the door and one by the glass wall.
+  const decor: Tile[] = [];
+  for (let r = 0; r < rows; r++) decor.push({ x: 22, y: FIRST_BAY_Y + r * BAY_H + 2 });
+  decor.push({ x: 6, y: lobbyTop + 1 }, { x: 26, y: lobbyTop + 1 }, { x: 9, y: h - 3 });
+  for (const d of decor) blocked[d.y * w + d.x] = 1;
+
   // Machine room.
   const glassX = 27;
   fill(blocked, w, { x: glassX, y: lobbyTop, w: 1, h: LOBBY_H - 1 });
@@ -249,6 +257,7 @@ export function layoutFloor(input: { lanes: readonly LaneView[]; rackSlots?: num
     front: { counter, seats, trays, skull: { x: 24 * TILE, y: (lobbyTop + 3) * TILE }, stand: frontStand },
     door: { rect: doorRect, entry, spawn: { x: 4 * TILE, y: (h - 1) * TILE } },
     queue,
+    decor,
     machine: { room: { x: glassX + 1, y: lobbyTop, w: w - 2 - glassX, h: LOBBY_H - 1 }, glassX, racks, console: consoleRect },
   };
 }

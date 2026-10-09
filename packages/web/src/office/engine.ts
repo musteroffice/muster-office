@@ -44,6 +44,9 @@ export interface EngineDebug {
   transitions: number;
   statesSeen: string[];
   fps: number;
+  /** Average and worst recent time spent in step+draw, in ms. */
+  frameMsAvg: number;
+  frameMsMax: number;
   log: OfficeWorld["log"];
 }
 
@@ -92,6 +95,7 @@ export class OfficeEngine {
   private dayNight = true;
   private fpsSamples: number[] = [];
   private fps = 0;
+  private workMs: number[] = [];
   private mq: MediaQueryList;
   private unsubs: Array<() => void> = [];
   private dragging: { x: number; y: number; camX: number; camY: number; moved: boolean } | null = null;
@@ -247,9 +251,12 @@ export class OfficeEngine {
     }
     const reduced = this.world.reduced;
     if (!reduced || this.dirty) {
+      const w0 = performance.now();
       this.world.step(reduced ? 0 : dtMs, Date.now());
       this.draw();
       this.dirty = false;
+      this.workMs.push(performance.now() - w0);
+      if (this.workMs.length > 120) this.workMs.shift();
     }
     this.fpsSamples.push(dtMs);
     if (this.fpsSamples.length > 30) this.fpsSamples.shift();
@@ -489,6 +496,8 @@ export class OfficeEngine {
       transitions: w.transitions,
       statesSeen: [...w.statesSeen].sort(),
       fps: Math.round(this.fps),
+      frameMsAvg: this.workMs.length ? this.workMs.reduce((a, b) => a + b, 0) / this.workMs.length : 0,
+      frameMsMax: this.workMs.length ? Math.max(...this.workMs) : 0,
       log: w.log.slice(-20),
     };
   }

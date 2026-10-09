@@ -16,7 +16,8 @@
     "dist",
     "docs",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "!**/*.map"
   ],
   "workspaces": [
     "packages/*"
