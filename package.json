@@ -5,10 +5,22 @@
   "license": "MIT",
   "type": "module",
   "private": false,
-  "engines": { "node": ">=20" },
-  "bin": { "muster-office": "bin/muster-office.mjs" },
-  "files": ["bin", "dist", "docs", "README.md", "LICENSE"],
-  "workspaces": ["packages/*"],
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "muster-office": "bin/muster-office.mjs"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "build": "npm run build:web && npm run build:server",
     "build:web": "npm run build -w @muster-office/web",
@@ -33,5 +45,10 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.40.0",
     "vitest": "^3.2.0"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.0",
+    "chokidar": "^4.0.3",
+    "hono": "^4.9.0"
   }
 }
