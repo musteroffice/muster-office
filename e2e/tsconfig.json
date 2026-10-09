@@ -1,0 +1,28 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "outDir": "../.tsbuildinfo/e2e",
+    "tsBuildInfoFile": "../.tsbuildinfo/e2e.tsbuildinfo",
+    "lib": [
+      "ES2023",
+      "DOM"
+    ],
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "./**/*.ts",
+    "../playwright.config.ts",
+    "../packages/web/src/globals.d.ts"
+  ],
+  "references": [
+    {
+      "path": "../packages/shared"
+    },
+    {
+      "path": "../packages/web"
+    }
+  ]
+}

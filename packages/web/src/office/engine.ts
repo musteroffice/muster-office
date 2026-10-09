@@ -334,6 +334,14 @@ export class OfficeEngine {
     this.camY = Math.round(this.camY);
   }
 
+  /** Bring an agent into view; true when it is on the floor. */
+  focusAgent(name: string): boolean {
+    const a = this.world.actors.get(name);
+    if (!a || !a.visible) return false;
+    this.centerOn(a.x, a.y - 12);
+    return true;
+  }
+
   /** Centre the view on a world pixel (used by tests and screenshots). */
   centerOn(wx: number, wy: number): void {
     this.camX = wx - this.cssW / this.zoom / 2;

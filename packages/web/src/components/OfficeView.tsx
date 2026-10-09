@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { backlog, deployName, deskPiles, flowInfo, inFlight, isDeadDesk, jobIsStale, laneDeployLevel, type JobView, type ProjectView } from "@muster-office/shared";
-import { OfficeEngine, targetKey, toSelection, type EngineDebug } from "../office/engine";
+import { OfficeEngine, targetKey, toSelection } from "../office/engine";
 import type { Target } from "../office/world";
 import { ageOf, fmtKB, modelShort } from "../lib/format";
 import { DEPLOY_LEVEL_META, RULE_LABEL, STATE_META } from "../lib/meta";
@@ -11,18 +11,6 @@ interface Hover {
   target: Target;
   x: number;
   y: number;
-}
-
-declare global {
-  interface Window {
-    /** Read-only debugging and test hooks. They expose nothing that is not already on screen. */
-    __office?: {
-      debug(): EngineDebug;
-      screenPosOf(name: string): { x: number; y: number } | null;
-      zoom(): number;
-      centerOn(wx: number, wy: number): void;
-    };
-  }
 }
 
 function describe(t: Target, project: ProjectView, jobs: readonly JobView[], now: number): { title: string; lines: string[] } {
@@ -135,7 +123,7 @@ export function OfficeView() {
     const engine = new OfficeEngine(canvas, hooks);
     engineRef.current = engine;
     engine.start();
-    window.__office = { debug: () => engine.debug(), screenPosOf: (n) => engine.screenPosOf(n), zoom: () => engine.getZoom(), centerOn: (x, y) => engine.centerOn(x, y) };
+    window.__office = { debug: () => engine.debug(), screenPosOf: (n) => engine.screenPosOf(n), zoom: () => engine.getZoom(), centerOn: (x, y) => engine.centerOn(x, y), focusAgent: (n) => engine.focusAgent(n) };
     return () => {
       engine.stop();
       engineRef.current = null;
