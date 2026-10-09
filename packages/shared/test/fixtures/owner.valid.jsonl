@@ -1,0 +1,4 @@
+{"$type":"dev.muster.note.post","uri":"muster://sess-w-auth-0000000000/dev.muster.note.post/c0ffee00c0ffee00c0ffee00c0ffee00","cid":"c0ffee00c0ffee00c0ffee00c0ffee00","author":"sess-w-auth-0000000000","createdAt":"2026-10-09T10:00:00.000Z","text":"@sess-desk-0000000000 Which branch?\nlong BODY with details that must stay hidden","kind":"question","project":"harbor-api","lane":"auth-rework","facets":[{"index":{"byteStart":0,"byteEnd":22},"features":[{"$type":"dev.muster.note.facet#mention","did":"sess-desk-0000000000"}]}]}
+{"$type":"dev.muster.note.post","uri":"muster://sess-w-auth-0000000000/dev.muster.note.post/deadbeefdeadbeefdeadbeefdeadbeef","cid":"deadbeefdeadbeefdeadbeefdeadbeef","author":"sess-w-auth-0000000000","createdAt":"2026-10-09T10:20:00.000Z","text":"Halfway there","kind":"progress","delivery":{"status":"sent"}}
+not json
+{"$type":"other.thing","uri":"u","cid":"c","author":"a","createdAt":"2026-10-09T12:00:00.000Z","text":"t","kind":"fyi"}

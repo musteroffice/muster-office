@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "writerSchemaVersion": 4,
+  "slug": "harbor-api",
+  "label": "Harbor API",
+  "dir": "/home/dev/code/harbor-api",
+  "outcome": "Ship the new auth flow",
+  "reviewTrigger": "weekly",
+  "boardType": "project",
+  "criticalPath": [
+    "auth"
+  ],
+  "nextAction": "land auth-rework",
+  "headline": "Auth rework in flight",
+  "policy": {
+    "wipLimit": 3,
+    "comms": "intercom",
+    "deployLevel": 1
+  },
+  "mode": "herdr-workflow",
+  "spaceId": "space-1",
+  "sidebar": "owned",
+  "ephemeral": false,
+  "musterExtension": null,
+  "deskExtension": null,
+  "cadenceMinutes": 30,
+  "state": "active",
+  "lanes": [
+    {
+      "slug": "auth-rework",
+      "kind": "work",
+      "label": "auth-rework",
+      "goal": "goal of auth-rework",
+      "writeScope": [
+        "src/"
+      ],
+      "repo": null,
+      "base": null,
+      "generated": [],
+      "tabId": null,
+      "root": null

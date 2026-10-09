@@ -1,0 +1,5 @@
+{"id":"d1","ts":"2026-10-09T07:00:00.000Z","from":"w-auth","kind":"blocked","title":"CI is red on main","body":"SECRET BODY: stack trace ..."}
+{"id":"d2","ts":"2026-10-09T08:40:00.000Z","from":"w-auth","kind":"approval","title":"Approve schema migration"}
+{"id":"d3","ts":"2026-10-09T10:20:00.000Z","from":"w-auth","kind":"decision","title":"Pick queue lib","refs":["a.ts:1"]}
+{"id":"d4","ts":"2026-10-09T10:30:00.000Z","from":"w-auth","kind":"done","title":"CI fixed","resolves":"d1"}
+{"id":"d5","ts":"2026-10-09T10:40:00.000Z","from":"w-auth","kind":"fyi","title":"FYI nightly done"}

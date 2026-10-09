@@ -1,0 +1,7 @@
+{"id":"d1","ts":"2026-10-09T07:00:00.000Z","from":"w-auth","kind":"blocked","title":"ok one"}
+{broken
+{"id":"x","ts":"2026-10-09T12:00:00.000Z","from":"a","kind":"nonsense","title":"t"}
+{"id":"y","ts":"2026-10-09T12:00:00.000Z","from":"a","kind":"fyi"}
+[1,2,3]
+{"id":"d2","ts":"2026-10-09T08:40:00.000Z","from":"w-auth","kind":"decision","title":"ok two"}
+{"id":"torn","ts":"2026

@@ -1,0 +1,18 @@
+{
+  "id": "22222222-2222-4222-8222-222222222222",
+  "host": "box",
+  "repo": "harbor-api",
+  "cwd": "/home/dev/code/harbor-api",
+  "command": "npm test",
+  "pid": 4242,
+  "startedAt": "2026-10-09T11:30:00.000Z",
+  "cpuPercent": 0,
+  "rssKB": 0,
+  "peakRssKB": 0,
+  "cpuSeconds": 30,
+  "sampledAt": null,
+  "state": "finished",
+  "exit": 0,
+  "wallMs": 60000,
+  "finishedAt": "2026-10-09T11:31:00.000Z"
+}

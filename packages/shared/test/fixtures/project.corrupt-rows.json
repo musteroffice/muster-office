@@ -1,0 +1,298 @@
+{
+  "version": 1,
+  "writerSchemaVersion": 4,
+  "slug": "harbor-api",
+  "label": "Harbor API",
+  "dir": "/home/dev/code/harbor-api",
+  "outcome": "Ship the new auth flow",
+  "reviewTrigger": "weekly",
+  "boardType": "project",
+  "criticalPath": [
+    "auth"
+  ],
+  "nextAction": "land auth-rework",
+  "headline": "Auth rework in flight",
+  "policy": {
+    "wipLimit": 3,
+    "comms": "intercom",
+    "deployLevel": 1
+  },
+  "mode": "herdr-workflow",
+  "spaceId": "space-1",
+  "sidebar": "owned",
+  "ephemeral": false,
+  "musterExtension": null,
+  "deskExtension": null,
+  "cadenceMinutes": 30,
+  "state": "active",
+  "lanes": [
+    {
+      "slug": "auth-rework",
+      "kind": "work",
+      "label": "auth-rework",
+      "goal": "goal of auth-rework",
+      "writeScope": [
+        "src/"
+      ],
+      "repo": null,
+      "base": null,
+      "generated": [],
+      "tabId": null,
+      "root": null,
+      "state": "open",
+      "archived": false,
+      "createdAt": "2026-10-09T05:20:00.000Z",
+      "updatedAt": "2026-10-09T11:40:00.000Z",
+      "delivery": "landed",
+      "deliveryAt": "2026-10-09T11:10:00.000Z",
+      "deliveryEvidence": "merged abc",
+      "deliveryHistory": [
+        {
+          "stage": "landed",
+          "at": "2026-10-09T11:10:00.000Z",
+          "evidence": "merged abc"
+        }
+      ],
+      "openedAt": "2026-10-09T05:40:00.000Z"
+    },
+    {
+      "slug": "billing-sync",
+      "kind": "work",
+      "label": "billing-sync",
+      "goal": "goal of billing-sync",
+      "writeScope": [
+        "src/"
+      ],
+      "repo": null,
+      "base": null,
+      "generated": [],
+      "tabId": null,
+      "root": null,
+      "state": "proposed",
+      "archived": false,
+      "createdAt": "2026-10-09T05:20:00.000Z",
+      "updatedAt": "2026-10-09T11:40:00.000Z",
+      "rank": 1,
+      "delivery": "none"
+    },
+    {
+      "slug": "desk",
+      "kind": "role",
+      "label": "desk",
+      "goal": "goal of desk",
+      "writeScope": [
+        "src/"
+      ],
+      "repo": null,
+      "base": null,
+      "generated": [],
+      "tabId": null,
+      "root": null,
+      "state": "open",
+      "archived": false,
+      "createdAt": "2026-10-09T05:20:00.000Z",
+      "updatedAt": "2026-10-09T11:40:00.000Z",
+      "delivery": "none"
+    },
+    42
+  ],
+  "agents": [
+    {
+      "machine": "local",
+      "name": "desk",
+      "role": "desk",
+      "side": null,
+      "lane": "desk",
+      "cwd": "/home/dev/code/harbor-api/.clones/desk",
+      "clone": null,
+      "profile": {
+        "label": "🐦 Yaffle · desk",
+        "model": "claude-bridge/claude-opus-5-5",
+        "thinking": "high",
+        "appendSystemPrompt": [],
+        "noSkills": true,
+        "skills": [],
+        "extensions": [],
+        "env": {
+          "ANTHROPIC_API_KEY": "sk-ant-SECRETSECRETSECRET1234567890",
+          "MUSTER_AGENT": "x"
+        },
+        "compactAt": 200000
+      },
+      "sessionId": "sess-desk-0000000000",
+      "sessionFile": "/home/dev/.pi/sessions/desk.jsonl",
+      "parentSessionFile": null,
+      "pane": {
+        "paneId": "p1",
+        "terminalId": "t1",
+        "tabId": "tab1",
+        "openedByMuster": true
+      },
+      "owner": "sess-desk-0000000000",
+      "brief": "/home/dev/briefs/x.md",
+      "state": "running",
+      "delivery": "proven",
+      "restarts": 0,
+      "restore": {
+        "cwd": "/x",
+        "argv": [
+          "pi"
+        ],
+        "env": {
+          "OPENAI_API_KEY": "sk-live-RESTORESECRET00000000"
+        }
+      },
+      "createdAt": "2026-10-09T07:00:00.000Z",
+      "updatedAt": "2026-10-09T11:50:00.000Z",
+      "events": [
+        {
+          "type": "launch",
+          "at": "2026-10-09T07:10:00.000Z",
+          "detail": "launched"
+        }
+      ]
+    },
+    {
+      "machine": "local",
+      "name": "w-auth",
+      "role": "worker",
+      "side": null,
+      "lane": "auth-rework",
+      "cwd": "/home/dev/code/harbor-api/.clones/w-auth",
+      "clone": null,
+      "profile": {
+        "label": "🛠 Pico · worker",
+        "model": "openai-codex/gpt-6.1-sol",
+        "thinking": "medium",
+        "appendSystemPrompt": [],
+        "noSkills": true,
+        "skills": [],
+        "extensions": [],
+        "env": {
+          "ANTHROPIC_API_KEY": "sk-ant-SECRETSECRETSECRET1234567890",
+          "MUSTER_AGENT": "x"
+        },
+        "compactAt": 200000
+      },
+      "sessionId": "sess-w-auth-0000000000",
+      "sessionFile": "/home/dev/.pi/sessions/w-auth.jsonl",
+      "parentSessionFile": null,
+      "pane": {
+        "paneId": "p1",
+        "terminalId": "t1",
+        "tabId": "tab1",
+        "openedByMuster": true
+      },
+      "owner": "sess-desk-0000000000",
+      "brief": "/home/dev/briefs/x.md",
+      "state": "reported",
+      "delivery": "proven",
+      "restarts": 0,
+      "restore": {
+        "cwd": "/x",
+        "argv": [
+          "pi"
+        ],
+        "env": {
+          "OPENAI_API_KEY": "sk-live-RESTORESECRET00000000"
+        }
+      },
+      "createdAt": "2026-10-09T07:00:00.000Z",
+      "updatedAt": "2026-10-09T11:50:00.000Z",
+      "events": [
+        {
+          "type": "launch",
+          "at": "2026-10-09T07:10:00.000Z",
+          "detail": "launched"
+        }
+      ]
+    },
+    {
+      "machine": "local",
+      "name": "hawk-1",
+      "role": "hawk",
+      "side": null,
+      "lane": "auth-rework",
+      "cwd": "/home/dev/code/harbor-api/.clones/hawk-1",
+      "clone": null,
+      "profile": {
+        "label": "🦅 Hawk · hawk",
+        "model": "claude-bridge/claude-opus-5-5",
+        "thinking": "high",
+        "appendSystemPrompt": [],
+        "noSkills": true,
+        "skills": [],
+        "extensions": [],
+        "env": {
+          "ANTHROPIC_API_KEY": "sk-ant-SECRETSECRETSECRET1234567890",
+          "MUSTER_AGENT": "x"
+        },
+        "compactAt": 200000
+      },
+      "sessionId": "sess-hawk-1-0000000000",
+      "sessionFile": "/home/dev/.pi/sessions/hawk-1.jsonl",
+      "parentSessionFile": null,
+      "pane": {
+        "paneId": "p1",
+        "terminalId": "t1",
+        "tabId": "tab1",
+        "openedByMuster": true
+      },
+      "owner": "sess-desk-0000000000",
+      "brief": "/home/dev/briefs/x.md",
+      "state": "silent",
+      "delivery": "proven",
+      "restarts": 0,
+      "restore": {
+        "cwd": "/x",
+        "argv": [
+          "pi"
+        ],
+        "env": {
+          "OPENAI_API_KEY": "sk-live-RESTORESECRET00000000"
+        }
+      },
+      "createdAt": "2026-10-09T07:00:00.000Z",
+      "updatedAt": "2026-10-09T11:50:00.000Z",
+      "events": [
+        {
+          "type": "launch",
+          "at": "2026-10-09T07:10:00.000Z",
+          "detail": "launched"
+        }
+      ]
+    },
+    {
+      "role": "worker",
+      "lane": "auth-rework"
+    },
+    "garbage"
+  ],
+  "packets": [
+    {
+      "id": "a1b2c3d4e5f6a7b8c9d0a1b2c3d4e5f6a7b8c9d0",
+      "kind": "commit",
+      "lane": "auth-rework",
+      "agent": "w-auth",
+      "artifact": null,
+      "report": "/home/dev/code/harbor-api/.brain/data/muster/reports/auth-rework/w-auth-a1b2c3d4e5f6.svx",
+      "checks": [
+        {
+          "name": "gate",
+          "outcome": "pass",
+          "detail": "ok"
+        }
+      ],
+      "state": "committed",
+      "verification": null,
+      "landedAs": "abc1234",
+      "gate": null,
+      "supersedes": null,
+      "reportedAt": "2026-10-09T11:00:00.000Z",
+      "updatedAt": "2026-10-09T11:10:00.000Z"
+    }
+  ],
+  "reviews": [],
+  "createdAt": "2026-10-09T03:40:00.000Z",
+  "updatedAt": "2026-10-09T11:55:00.000Z"
+}

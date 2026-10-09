@@ -1,0 +1,6 @@
+{"ts":"2026-10-09T11:10:00.000Z","session":"sess-desk-0000000000","kind":"packet_report","project":"harbor-api","packetId":"a1b2"}
+{"ts":"2026-10-09T11:20:00.000Z","session":"sess-desk-0000000000","kind":"desk_note","project":"harbor-api","itemId":"d1","itemCount":2,"path":"queue","woke":true}
+{"ts":"2026-10-09T11:30:00.000Z","session":"sess-desk-0000000000","kind":"owner_note","project":"harbor-api","noteKind":"question"}
+{"ts":"2026-10-09T11:40:00.000Z","session":"sess-desk-0000000000","kind":"brand_new_kind","project":"harbor-api"}
+garbage
+{"nokind":true}
