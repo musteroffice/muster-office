@@ -12,6 +12,16 @@ import { OfficeWorld, type Target } from "./world";
  */
 
 export const IDLE_FREEZE_MS = 60_000;
+
+/** `?freezeMs=2000` shortens the idle freeze (used by the end-to-end tests). */
+function freezeAfter(): number {
+  try {
+    const v = Number(new URLSearchParams(window.location.search).get("freezeMs"));
+    return Number.isFinite(v) && v >= 500 ? v : IDLE_FREEZE_MS;
+  } catch {
+    return IDLE_FREEZE_MS;
+  }
+}
 export const MIN_ZOOM = 1;
 export const MAX_ZOOM = 8;
 
@@ -86,6 +96,7 @@ export class OfficeEngine {
   private unsubs: Array<() => void> = [];
   private dragging: { x: number; y: number; camX: number; camY: number; moved: boolean } | null = null;
   private fitted = "";
+  private freezeMs = freezeAfter();
   private bg = "#0e1120";
   private bgAge = 0;
   private lastSnapshot: Snapshot | null = null;
@@ -228,7 +239,7 @@ export class OfficeEngine {
     this.lastFrame = t;
     const lastData = useOffice.getState().lastDataAt;
     const idleFor = Math.min(t - this.lastInput, Date.now() - lastData);
-    if (idleFor > IDLE_FREEZE_MS && !this.dirty) {
+    if (idleFor > this.freezeMs && !this.dirty) {
       // Freeze: nothing arrived and nobody touched anything for a minute. Stop the loop entirely.
       this.frozen = true;
       this.running = false;

@@ -177,6 +177,11 @@ export class OfficeWorld {
       this.layout = layoutFloor({ lanes: project.lanes, rackSlots });
       this.env = { layout: this.layout, emit: (e) => this.onEvent(e) };
     }
+    // Geometry only rebuilds on structural changes, so keep every bay pointing at the current lane data.
+    for (const bay of this.layout.bays) {
+      const cur = project.lanes.find((l) => l.slug === bay.lane.slug);
+      if (cur) bay.lane = cur;
+    }
     this.assignHomes(project);
 
     const present = new Set<string>();
@@ -200,7 +205,7 @@ export class OfficeWorld {
     });
     for (const name of [...this.actors.keys()]) if (!present.has(name)) this.actors.delete(name);
 
-    this.syncVisitors(project);
+    this.syncVisitors(project, snap);
     this.syncTokens(project, snap);
     this.syncPiles(project, now, snap);
   }
@@ -367,6 +372,11 @@ export class OfficeWorld {
     const st = steadyFor(to);
     a.screen = st.screen;
     a.smoke = st.smoke;
+    // Attention-getting emotes show the moment the state changes; completion marks wait for the hand-off.
+    if (["bang", "zzz", "dots", "error", "boot", "spinner"].includes(st.emote)) {
+      a.emote = st.emote;
+      a.emoteUntil = 0;
+    }
     if (st.ghost === false && a.alpha < 1 && to !== "interrupted" && to !== "restoring") a.alpha = Math.max(a.alpha, 0.6);
   }
 
@@ -405,7 +415,7 @@ export class OfficeWorld {
 
   /* ----------------------------------------------------------- visitors */
 
-  private syncVisitors(project: ProjectView): void {
+  private syncVisitors(project: ProjectView, snap: boolean): void {
     const f = this.flow;
     const waiting = f && f.atLimit ? backlog(project) : [];
     const spots = this.layout.queue;
@@ -420,12 +430,13 @@ export class OfficeWorld {
       a.sitting = false;
       a.dir = "right";
       a.look = { ...a.look, id: `visitor:${slug}`, shirt: "#8890b8", accent: "#aab0d0", hat: "none" };
+      const instant = this.reduced || snap;
       if (!prev) {
-        a.x = this.reduced ? p.x : this.layout.door.spawn.x;
-        a.y = this.reduced ? p.y : this.layout.door.spawn.y;
+        a.x = instant ? p.x : this.layout.door.spawn.x;
+        a.y = instant ? p.y : this.layout.door.spawn.y;
         a.primed = true;
       }
-      if (this.reduced || Math.hypot(a.x - p.x, a.y - p.y) < 1) {
+      if (instant || Math.hypot(a.x - p.x, a.y - p.y) < 1) {
         a.x = p.x;
         a.y = p.y;
         a.script = [];

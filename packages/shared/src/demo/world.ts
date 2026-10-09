@@ -504,6 +504,16 @@ export function projectDocument(p: ProjectDef, k: number, c: Clock): string {
   });
 }
 
+/** UTF-8 byte length without Buffer or TextEncoder (shared code runs in the browser too). */
+function utf8Length(s: string): number {
+  let n = 0;
+  for (const ch of s) {
+    const c = ch.codePointAt(0)!;
+    n += c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4;
+  }
+  return n;
+}
+
 export function registryDocument(c: Clock): string {
   return (
     PROJECTS.map((p) => JSON.stringify({ slug: p.slug, dir: `/demo/${p.slug}`, spaceId: null, ts: isoAt(c.epoch - p.createdMinAgo * MIN) })).join("\n") + "\n"
@@ -550,7 +560,7 @@ export function ownerLines(p: ProjectDef, k: number, c: Clock): string[] {
         project: p.slug,
         ...(o.lane ? { lane: o.lane } : {}),
         ...(prefix
-          ? { facets: [{ index: { byteStart: 0, byteEnd: Buffer.byteLength(prefix.trimEnd()) }, features: [{ $type: "dev.muster.note.facet#mention", did: owner }] }] }
+          ? { facets: [{ index: { byteStart: 0, byteEnd: utf8Length(prefix.trimEnd()) }, features: [{ $type: "dev.muster.note.facet#mention", did: owner }] }] }
           : {}),
       });
     });
