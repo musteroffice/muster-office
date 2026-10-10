@@ -3,6 +3,8 @@
 A read-only, localhost, live dashboard for [pi-muster](https://github.com/joelhooks/pi-muster) that
 shows your agents as pixel-art characters working in an office.
 
+![The demo office in motion: agents at their desks, the timeline updating live](docs/screenshots/office-demo.gif)
+
 ![The office floor of a demo project: pods, delivery strips and deploy gates, with agents at their desks](docs/screenshots/office.png)
 
 Each Muster **project** is a floor. Each **lane** is a desk pod with one main chair. Each **agent** is a
