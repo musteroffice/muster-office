@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, Clapperboard, ListTree, Loader2, Maximize2, Navigation, ZoomIn, ZoomOut } from "lucide-react";
+import { Camera, ChevronDown, Clapperboard, FolderOpen, ListTree, Loader2, Maximize, Maximize2, Navigation, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
@@ -12,6 +12,11 @@ import { DEPLOY_LEVEL_META, RULE_LABEL, STATE_META } from "../lib/meta";
 import { TONE_TEXT } from "../lib/tone";
 import { selectProjectView, useOffice } from "../store";
 import { Director } from "./Director";
+import { DeskInbox } from "./DeskInbox";
+import { FocusBar } from "./FocusBar";
+import { LiveFeed } from "./LiveFeed";
+import { Roster } from "./Roster";
+import { toggleFullScreen } from "../lib/fullscreen";
 import { useNow } from "./hooks";
 
 interface Hover {
@@ -133,12 +138,29 @@ function Minimap({ engineRef, attach }: { engineRef: React.RefObject<OfficeEngin
   );
 }
 
+/** Save the picture on screen as a PNG. It is made and kept entirely in the browser. */
+async function saveSnapshot(engine: OfficeEngine | null, slug: string | undefined): Promise<void> {
+  const blob = await engine?.snapshot();
+  if (!blob) return;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `muster-office-${slug ?? "floor"}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.png`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
 export function OfficeView() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<OfficeEngine | null>(null);
   const miniRef = useRef<HTMLCanvasElement | null>(null);
   const [hover, setHover] = useState<Hover | null>(null);
-  const [zoom, setZoom] = useState(2);
+  const [zoom, setZoom] = useState(1);
+  const [fill, setFill] = useState(true);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  const officeRef = useRef<HTMLDivElement | null>(null);
   const project = useOffice(selectProjectView);
   const jobs = useOffice((s) => s.snapshot?.jobs);
   const loaded = useOffice((s) => s.snapshot !== null);
@@ -146,6 +168,7 @@ export function OfficeView() {
   const minimap = useOffice((s) => s.minimap);
   const follow = useOffice((s) => s.follow);
   const director = useOffice((s) => s.director);
+  const focus = useOffice((s) => s.focus);
   const setDirector = useOffice((s) => s.setDirector);
   const selected = useOffice((s) => s.selection);
   const setFollow = useOffice((s) => s.setFollow);
@@ -159,7 +182,10 @@ export function OfficeView() {
     () => ({
       onHover: (target: Target | null, x: number, y: number) => setHover((prev) => (target ? (prev && targetKey(prev.target) === targetKey(target) && Math.abs(prev.x - x) + Math.abs(prev.y - y) < 3 ? prev : { target, x, y }) : null)),
       onSelect: (t: Target | null) => select(t ? toSelection(t) : null),
-      onZoom: (z: number) => setZoom(z),
+      onZoom: (z: number, f: boolean) => {
+        setZoom(z);
+        setFill(f);
+      },
     }),
     [select],
   );
@@ -178,6 +204,22 @@ export function OfficeView() {
       delete window.__office;
     };
   }, [hooks]);
+
+  useEffect(() => {
+    const el = officeRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setBox({ w: el.clientWidth, h: el.clientHeight }));
+    ro.observe(el);
+    setBox({ w: el.clientWidth, h: el.clientHeight });
+    return () => ro.disconnect();
+  }, []);
+
+  // When the window is wider than the floor needs, the empty margins carry the live feed (and, in full
+  // screen, the crew list) instead of sitting blank.
+  const floor = engineRef.current?.floorSize() ?? { w: 752, h: 600 };
+  const side = Math.floor((box.w - floor.w * zoom) / 2);
+  const bands = fill && !!project && side >= 300;
+  const bandW = Math.min(side - 20, 420);
 
   // The first snapshot can arrive after mount.
   useEffect(() => {
@@ -208,7 +250,7 @@ export function OfficeView() {
   const nudge = useCallback((fn: (e: OfficeEngine) => void) => engineRef.current && fn(engineRef.current), []);
 
   return (
-    <div className="office" data-testid="office">
+    <div className="office" data-testid="office" ref={officeRef}>
       <canvas ref={canvasRef} className="office-canvas" tabIndex={0} role="application" aria-label={label} aria-roledescription="animated office" aria-describedby="office-summary" data-testid="office-canvas" />
       <p id="office-summary" className="sr-only">
         {summary}
@@ -221,8 +263,20 @@ export function OfficeView() {
           </div>
         </div>
       )}
-      {loaded && !project && <div className="pointer-events-none absolute inset-0 grid place-items-center text-muted-foreground">No project to show. Muster has not registered any, or the registry is empty.</div>}
+      {loaded && !project && (
+        <div className="pointer-events-none absolute inset-0 grid place-items-center p-6">
+          <div className="max-w-md rounded-xl border bg-card p-6 text-center shadow-sm">
+            <FolderOpen aria-hidden="true" className="mx-auto mb-3 size-8 text-muted-foreground" />
+            <h2 className="text-base font-semibold">No project to show</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Muster has not registered any, or the registry is empty. This page reads <code>~/.local/state/muster/projects.jsonl</code> and the projects it lists.</p>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Point it at another home with <code>--home &lt;dir&gt;</code>, or look around with <code>--demo</code>.
+            </p>
+          </div>
+        </div>
+      )}
       {director && <Director />}
+      {focus && <FocusBar />}
       <div className="absolute right-3 top-3 z-[5] flex items-center gap-0.5 rounded-lg border bg-card p-0.5 shadow-sm" role="group" aria-label="Camera">
         <Button type="button" variant={director ? "default" : "ghost"} size="sm" className="h-7 gap-1.5 px-2" aria-pressed={director} onClick={() => setDirector(!director)} title="Director: the camera flies to the action by itself, for a wall display (D)">
           <Clapperboard /> auto
@@ -237,17 +291,36 @@ export function OfficeView() {
           <ZoomOut />
         </Button>
         <span className="min-w-8 text-center font-mono text-xs" aria-live="off">
-          {zoom}x
+          {Number.isInteger(zoom) ? zoom : zoom.toFixed(2).replace(/0$/, "")}x
         </span>
         <Button type="button" variant="ghost" size="icon-sm" className="size-7" onClick={() => nudge((e) => e.setZoom(e.getZoom() + 1))} aria-label="Zoom in">
           <ZoomIn />
         </Button>
-        <Button type="button" variant="ghost" size="icon-sm" className="size-7" onClick={() => nudge((e) => (e.fit(), e.wake()))} aria-label="Fit to window" title="Fit the whole floor">
+        <Button type="button" variant="ghost" size="icon-sm" className="size-7" onClick={() => nudge((e) => (e.fit(), e.wake()))} aria-label="Fit to window" title="Fill the window with the whole floor">
           <Maximize2 />
         </Button>
+        <Button type="button" variant="ghost" size="icon-sm" className="size-7" onClick={() => void saveSnapshot(engineRef.current, project?.slug)} aria-label="Save a picture (PNG)" title="Save what you see as a PNG" data-testid="snapshot">
+          <Camera />
+        </Button>
+        {!focus && (
+          <Button type="button" variant="ghost" size="icon-sm" className="size-7" onClick={toggleFullScreen} aria-label="Full screen (Z)" title="Full screen (Z)">
+            <Maximize />
+          </Button>
+        )}
       </div>
-      {minimap && loaded && project && <Minimap engineRef={engineRef} attach={attachMini} />}
-      <Collapsible className="absolute left-3 top-3 z-[5] max-w-sm rounded-lg border bg-card text-xs shadow-sm max-sm:hidden">
+      {bands && (
+        <div className="absolute bottom-3 right-3 top-14 z-[4] flex flex-col gap-2" style={{ width: bandW }}>
+          <LiveFeed className="min-h-0 flex-1" />
+          {focus && <DeskInbox className="max-h-[45%]" />}
+        </div>
+      )}
+      {bands && (
+        <div className="absolute bottom-3 left-3 top-14 z-[4]" style={{ width: bandW }}>
+          {focus ? <Roster embedded /> : <DeskInbox className="max-h-full" />}
+        </div>
+      )}
+      {minimap && !fill && loaded && project && <Minimap engineRef={engineRef} attach={attachMini} />}
+      <Collapsible className={cn("absolute left-3 top-3 z-[5] max-w-sm rounded-lg border bg-card text-xs shadow-sm max-sm:hidden", focus && "hidden")}>
         <CollapsibleTrigger asChild>
           <Button type="button" variant="ghost" size="sm" className="h-7 gap-1.5 px-2 text-muted-foreground">
             <ListTree /> Legend <ChevronDown className="size-3" />

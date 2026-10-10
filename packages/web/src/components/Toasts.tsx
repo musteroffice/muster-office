@@ -43,5 +43,7 @@ export function Toasts() {
       }
     });
   }, []);
-  return <Toaster position="bottom-center" visibleToasts={3} offset={{ bottom: 236 }} mobileOffset={{ bottom: 72 }} toastOptions={{ classNames: { toast: "data-alert", actionButton: "!bg-primary !text-primary-foreground" } }} />;
+  // Below the top bar and vital signs, or at the very top in full-screen mode; never over the middle of the floor.
+  const focus = useOffice((s) => s.focus);
+  return <Toaster position="top-center" visibleToasts={2} offset={{ top: focus ? 56 : 148 }} mobileOffset={{ top: focus ? 56 : 132 }} toastOptions={{ classNames: { toast: "data-alert", actionButton: "!bg-primary !text-primary-foreground" } }} />;
 }

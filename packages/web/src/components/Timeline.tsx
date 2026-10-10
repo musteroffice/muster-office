@@ -11,7 +11,7 @@ import { EMPTY, useOffice } from "../store";
 import { clock } from "../lib/format";
 
 const KINDS: TimelineKind[] = ["agent", "lane", "delivery", "packet", "desk", "owner", "job", "relay", "system"];
-const KIND_ICON: Record<TimelineKind, LucideIcon> = {
+export const KIND_ICON: Record<TimelineKind, LucideIcon> = {
   agent: User,
   lane: Rows3,
   delivery: Truck,
@@ -24,7 +24,7 @@ const KIND_ICON: Record<TimelineKind, LucideIcon> = {
 };
 const RENDER_CAP = 100;
 
-const SEV_BAR = { ok: "border-l-success", warn: "border-l-warning", error: "border-l-destructive", info: "border-l-border" } as const;
+export const SEV_BAR = { ok: "border-l-success", warn: "border-l-warning", error: "border-l-destructive", info: "border-l-border" } as const;
 
 type Row = ReturnType<typeof useOffice.getState>["timeline"][number];
 

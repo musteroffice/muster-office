@@ -27,7 +27,7 @@ function group(a: AgentView): 0 | 1 | 2 {
 
 const GROUP_LABEL = ["Needs attention", "Working", "Everyone else"] as const;
 
-export function Roster() {
+export function Roster({ embedded = false }: { embedded?: boolean }) {
   const project = useOffice(selectProjectView);
   const selection = useOffice((s) => s.selection);
   const pointed = useOffice((s) => s.pointed);
@@ -44,7 +44,7 @@ export function Roster() {
   }, [agents]);
 
   return (
-    <aside className="roster flex min-h-0 flex-col border-r bg-card" aria-label="Crew" data-testid="roster">
+    <aside className={cn("roster flex min-h-0 flex-col bg-card", embedded ? "h-full rounded-lg border" : "border-r")} aria-label="Crew" data-testid="roster">
       <div className="flex items-center gap-2 border-b px-3 py-2">
         <h2 className="flex-1 text-sm font-semibold">Crew</h2>
         <span className="text-xs text-muted-foreground">{agents.length}</span>

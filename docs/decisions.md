@@ -170,3 +170,35 @@ original brief is marked **(deviation)**.
     re-render too costly under a stream of ~800 events a minute), the perf spec switches Playwright tracing
     off (a screencast would otherwise be measured as frame cost), and overlays that cover the canvas never
     use `backdrop-filter`.
+
+## One screen, full screen, links
+
+49. **The default view is the whole floor, filling the window.** A first version opened at a readable 2x
+    and made you pan, which left most windows half empty and the rest hidden. `fitFill()` scales the whole
+    floor to the window (never below 0.4x) and re-fits on resize. The price is a fractional scale: pixels
+    are not all the same size, and below 1x the canvas smooths instead of dropping pixels. Zooming with the
+    buttons, keys or wheel leaves fill mode and snaps back to whole steps, and clicking the minimap or flying
+    to someone from the whole-floor view zooms in (a click on a map means "take me there"). `?close` opens
+    the old zoomed view for screenshots.
+50. **Full screen is a layout, not just a browser flag.** `Z` (or the expand button) requests browser full
+    screen straight from the click and also hides the top bar, vital signs, crew column and timeline, leaving
+    the office, a floating bar (floors, a one-line summary, Exit) and the camera box. Leaving full screen with
+    Esc leaves the mode too (`fullscreenchange`). If the browser refuses full screen the layout still works.
+51. **Empty margins do work.** When the window is at least 300 px wider than the floor on each side, the
+    margin carries the live feed (and the desk's open items, or in full screen the crew list). The feed
+    and inbox show titles and ages only, so bodies still wait for "show bodies". The timeline now starts
+    collapsed in windows under 1000 px tall so the floor gets the height.
+52. **Outbound links are anchors, configured at build time.** GitHub and X sit left of *Jump to…* as icon
+    links (`target=_blank`, `rel=noopener noreferrer`) with tooltips. No account names are assumed: GitHub
+    defaults to the pi-muster repo and X to a pre-filled "share" post; `VITE_GITHUB_URL` and `VITE_X_URL`
+    replace them. Nothing is fetched from either site, so the CSP and the "no outbound requests" property
+    are unchanged. The brand marks are inline SVG because Lucide no longer ships them.
+53. **Alerts stay out of the way.** Toasts sit below the vital signs (or at the very top in full screen),
+    at most two at a time, never over the middle of the floor. One quiet first-run tip points at Ctrl K,
+    `?` and `Z`, and is shown once.
+54. **Accessibility is tested, not claimed.** `e2e/a11y.spec.ts` runs axe-core (WCAG 2 A and AA) over the
+    office, the board, the open palette, the shortcuts dialog and the settings menu, in the dark and light
+    themes. It found three real problems, all fixed: tab triggers pointing at panels that do not exist
+    (`aria-controls`), a modal menu hiding focusable elements, and light-theme status colours below the
+    contrast ratio. Fading alerts are excluded because axe would measure them mid-fade. Automated checks
+    find only part of the problems; this is a floor, not a certificate.

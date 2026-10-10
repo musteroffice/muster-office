@@ -1,4 +1,4 @@
-import { Command, Keyboard, LayoutGrid, Map as MapIcon, Palette, Search, Settings, Sun, Users, Volume2, Wifi, WifiOff } from "lucide-react";
+import { Command, Keyboard, LayoutGrid, Maximize, Map as MapIcon, Palette, Search, Settings, Sun, Users, Volume2, Wifi, WifiOff } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,9 +17,13 @@ import { Kbd } from "@/components/ui/kbd";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
+import { GithubMark, XMark } from "./BrandIcons";
 import { EMPTY, isDegraded, useOffice } from "../store";
+import { toggleFullScreen } from "../lib/fullscreen";
+import { GITHUB_URL, X_LABEL, X_URL } from "../lib/links";
 import { THEMES, type Theme } from "../lib/prefs";
 import { unlockAudio } from "../lib/sound";
 import { TONE_DOT } from "../lib/tone";
@@ -119,7 +123,7 @@ function ProjectTabs() {
           const bad = failed + blocked;
           const tone = bad > 0 ? "bad" : warn > 0 || p.status !== "ok" ? "warn" : running > 0 ? "ok" : "ghost";
           return (
-            <TabsTrigger key={p.slug} value={p.slug} title={p.status !== "ok" ? `${p.label} (${p.status})` : p.label} className="gap-2 px-3 text-[0.8125rem]">
+            <TabsTrigger key={p.slug} value={p.slug} aria-controls={undefined} title={p.status !== "ok" ? `${p.label} (${p.status})` : p.label} className="gap-2 px-3 text-[0.8125rem]">
               <span aria-hidden="true" className={cn("size-1.5 shrink-0 rounded-full", TONE_DOT[tone])} />
               {p.label}
               {p.status !== "ok" && <span className="sr-only">{p.status}</span>}
@@ -148,7 +152,7 @@ function SettingsMenu() {
   const { setTheme, setDayNight, setSound, setMinimap, setRosterOpen, setHelpOpen } = useOffice.getState();
   const keep = (e: Event): void => e.preventDefault();
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button type="button" variant="outline" size="icon-sm" aria-label="Settings" title="Settings" data-testid="settings">
           <Settings />
@@ -218,6 +222,29 @@ export function TopBar() {
       <ProjectTabs />
 
       <div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-2">
+        <nav className="flex items-center gap-0.5" aria-label="Links">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button asChild variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-foreground">
+                <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in a new tab)" data-testid="link-github">
+                  <GithubMark />
+                </a>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>GitHub</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button asChild variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-foreground">
+                <a href={X_URL} target="_blank" rel="noopener noreferrer" aria-label={`${X_LABEL} (opens in a new tab)`} data-testid="link-x">
+                  <XMark />
+                </a>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{X_LABEL}</TooltipContent>
+          </Tooltip>
+        </nav>
+
         <Button type="button" variant="outline" size="sm" onClick={() => setPaletteOpen(true)} aria-label="Search and jump (Ctrl K)" data-testid="open-palette" className="h-8 w-8 justify-center px-0 font-normal text-muted-foreground sm:w-44 sm:justify-start sm:px-3">
           <Search />
           <span className="hidden flex-1 text-left sm:inline">Jump to…</span>
@@ -238,6 +265,14 @@ export function TopBar() {
           show bodies
         </label>
 
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button type="button" variant="outline" size="icon-sm" aria-label="Full screen (Z)" onClick={toggleFullScreen} data-testid="fullscreen">
+              <Maximize />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Full screen (Z)</TooltipContent>
+        </Tooltip>
         <SettingsMenu />
         <ConnectionPill />
       </div>

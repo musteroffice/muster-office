@@ -16,6 +16,8 @@
 //   --focus <x,y>      centre the camera on a world pixel (the floor is 752 px wide)
 //   --select <agent>   click an agent in the office to open its panel
 //   --theme <system|dark|light|mono>
+//   --fullscreen       switch to full-screen mode (the office alone, filling the window) before shooting
+//   --close            open zoomed on the agents instead of showing the whole floor
 import { chromium } from "@playwright/test";
 
 const args = Object.fromEntries(
@@ -44,9 +46,20 @@ await page.addInitScript(
   },
   { view: args.view ?? "office", theme: args.theme, project: args.project },
 );
-await page.goto(url);
+await page.addInitScript(() => {
+  try {
+    localStorage.setItem("muster-office:tipSeen", "true");
+  } catch {
+    /* ignore */
+  }
+});
+await page.goto(args.close ? `${url}${url.includes("?") ? "&" : "?"}close` : url);
 await page.waitForSelector(args.view === "board" ? "[data-testid=board]" : args.view === "sprites" ? "canvas" : "[data-testid=office-canvas]");
 await page.waitForTimeout(Number(args.wait ?? 1500));
+if (args.fullscreen) {
+  await page.getByTestId("fullscreen").click();
+  await page.waitForTimeout(1500);
+}
 if (args.zoom) {
   await page.locator("[data-testid=office-canvas]").focus();
   const target = Number(args.zoom);

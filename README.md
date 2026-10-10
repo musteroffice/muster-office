@@ -117,6 +117,8 @@ Under `prefers-reduced-motion` nothing floats or wanders (Biscuit sleeps), and t
 
 ### Controls
 
+- **One screen:** the whole floor opens scaled to fill the window, nothing to pan. When the window is wider than the floor needs, the empty margins carry the live feed and the desk's open items. **Full screen** (`Z`, or the expand button in the top bar) goes browser full screen and leaves only the office, the floors, a one-line summary and the way out; the margins then hold the crew list and the feed. `fit` brings the whole-floor view back after zooming. (The fill scale is fractional, so pixels are not all one size; zooming with `+`/`-`/the wheel goes back to whole steps and crisp pixels.)
+- **Links and sharing:** a GitHub and an X button sit left of *Jump to…*; the camera button in the corner saves what you see as a PNG, made entirely in the browser. Both links are plain anchors the viewer clicks (`target=_blank`, `rel=noopener noreferrer`); the page never fetches them. By default GitHub opens the pi-muster project and X opens a pre-filled post about Muster Office. Point them at your own accounts at build time: `VITE_GITHUB_URL=https://github.com/you/muster-office VITE_X_URL=https://x.com/you npm run build`.
 - **Crew list** (left): everyone on the floor with a sprite portrait, state pill, lane and model; whoever needs attention is first. Hover outlines them on the floor, click flies the camera there, double-click follows them. `[` hides it.
 - **Vital signs** (under the top bar): each card is a button that takes you to what it counts. Flow turns red when the project stalls; the desk shows a flame when something has been waiting.
 - **Alerts:** failures, silent or interrupted agents, new blocked/approval/decision items, deployed/proven deliveries, lost jobs and flow stalls raise a toast with a *Show* button. Routine progress never interrupts. The tab title and favicon show the count too. Optional **alert sounds** (off by default) are synthesised in the browser; nothing is downloaded.
@@ -215,7 +217,7 @@ npm run dev          # esbuild watch + node --watch server + Vite with a proxy (
 packages/shared   types, tolerant parsers, derivations (flow line, WIP, desk heat), diff/apply protocol, demo script
 packages/server   SafeReader, JSONL tailer, model, watchers, SSE, host guard, CLI, demo source
 packages/web      React + shadcn/ui, Zustand store, SSE client, the office (layout, A*, sprites, world, renderer, engine)
-e2e/              Playwright smoke, UI, live-file and perf tests
+e2e/              Playwright smoke, UI, axe accessibility, live-file and perf tests
 scripts/          build-server, dev, screenshot, fixture-home
 docs/             data-contract, decisions, sprites
 ```
@@ -234,6 +236,7 @@ npm run demo &
 node scripts/screenshot.mjs --out docs/screenshots/office.png --zoom 2 --focus 376,230 --wait 12000
 node scripts/screenshot.mjs --view board --out docs/screenshots/board.png
 node scripts/screenshot.mjs --theme mono --out docs/screenshots/office-mono.png
+node scripts/screenshot.mjs --fullscreen --size 1920x1080 --out docs/screenshots/office-night.png
 node scripts/screenshot.mjs --url "http://127.0.0.1:4747/?hour=22" --out docs/screenshots/office-night.png --wait 9000
 
 # a GIF: 60 frames, 100 ms apart, then stitch them (ffmpeg or gifski)

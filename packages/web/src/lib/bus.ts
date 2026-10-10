@@ -11,7 +11,8 @@ export type FocusRequest =
   | { type: "job"; id: string }
   | { type: "ticker" }
   | { type: "machine" }
-  | { type: "cat" };
+  | { type: "cat" }
+  | { type: "fit" };
 
 type Listener = (r: FocusRequest) => void;
 const listeners = new Set<Listener>();

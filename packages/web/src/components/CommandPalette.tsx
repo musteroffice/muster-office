@@ -20,6 +20,7 @@ import {
   Table2,
   Volume2,
   Eye,
+  Maximize,
   type LucideIcon,
 } from "lucide-react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -29,6 +30,7 @@ import { requestFocus, type FocusRequest } from "../lib/bus";
 import { plainLabel } from "../lib/format";
 import { STATE_META } from "../lib/meta";
 import { THEMES } from "../lib/prefs";
+import { toggleFullScreen } from "../lib/fullscreen";
 import { unlockAudio } from "../lib/sound";
 import { useOffice, type Selection } from "../store";
 
@@ -104,6 +106,7 @@ function useItems(): Item[] {
           st().setSound(!st().sound);
         },
       },
+      { id: "v:fullscreen", group: "View", label: "Full screen", hint: "Z · only the office, filling the window", icon: Maximize, run: () => toggleFullScreen() },
       { id: "v:director", group: "View", label: `Director mode: ${st().director ? "turn off" : "turn on"}`, hint: "D · camera flies to the action", icon: Clapperboard, run: () => st().setDirector(!st().director) },
       { id: "v:help", group: "View", label: "Keyboard shortcuts", hint: "?", icon: Keyboard, run: () => st().setHelpOpen(true) },
     );

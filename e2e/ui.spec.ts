@@ -7,6 +7,7 @@ async function openOffice(page: Page, path = "/"): Promise<void> {
     try {
       localStorage.setItem("muster-office:view", '"office"');
       localStorage.setItem("muster-office:rosterOpen", "true");
+      localStorage.setItem("muster-office:tipSeen", "true");
       localStorage.setItem("muster-office:minimap", "true");
     } catch {
       /* blocked */
@@ -27,6 +28,9 @@ test.describe("the chrome around the office", () => {
     await expect(roster).toBeVisible();
     await expect(roster.locator("canvas.portrait").first()).toBeVisible();
     expect(await roster.locator("button.crew").count()).toBeGreaterThan(3);
+    // With the whole floor on screen a minimap would only repeat it, so it appears once you zoom in.
+    await expect(page.getByTestId("minimap")).toHaveCount(0);
+    await page.getByRole("button", { name: "Zoom in" }).click();
     await expect(page.getByTestId("minimap")).toBeVisible();
   });
 
@@ -40,6 +44,7 @@ test.describe("the chrome around the office", () => {
     const after = (await debug(page))!;
     expect(Math.abs(after.cam.x - before.x) + Math.abs(after.cam.y - before.y)).toBeGreaterThan(5);
     expect(after.zoom).toBeGreaterThanOrEqual(3);
+    expect(after.fill).toBe(false);
   });
 
   test("hovering a card outlines that person on the floor, and the panel can follow them", async ({ page }) => {
@@ -96,7 +101,7 @@ test.describe("the chrome around the office", () => {
   test("failures and blocked work raise a toast whose button takes you there", async ({ page }) => {
     test.setTimeout(70_000);
     await openOffice(page);
-    const first = page.locator("[data-sonner-toast]").first();
+    const first = page.locator("[data-sonner-toast]", { has: page.getByRole("button", { name: "Show" }) }).first();
     await expect(first).toBeVisible({ timeout: 45_000 });
     const handle = await first.elementHandle();
     await first.getByRole("button", { name: "Show" }).click();
@@ -106,6 +111,7 @@ test.describe("the chrome around the office", () => {
 
   test("the minimap moves the camera when you click it", async ({ page }) => {
     await openOffice(page);
+    await page.getByRole("button", { name: "Zoom in" }).click();
     const mm = page.getByTestId("minimap").locator("canvas");
     const box = (await mm.boundingBox())!;
     const before = (await debug(page))!.cam;
@@ -166,5 +172,83 @@ test.describe("life in the office", () => {
     expect(d.popups).toBe(0);
     expect(d.pulseSpikes).toBe(0);
     await ctx.close();
+  });
+});
+
+test.describe("one screen, full screen", () => {
+  test("opens with the whole floor filling the window, and the fill view follows a resize", async ({ page }) => {
+    await openOffice(page);
+    const d = (await debug(page))!;
+    expect(d.fill).toBe(true);
+    // Scaled so the floor reaches the edge of the window along one axis, and never past it.
+    expect(d.coverage).toBeGreaterThan(0.93);
+    expect(d.coverage).toBeLessThanOrEqual(1);
+    const z0 = d.zoom;
+    await page.setViewportSize({ width: 1000, height: 700 });
+    await expect.poll(async () => (await debug(page))!.zoom).not.toBe(z0);
+    expect((await debug(page))!.fill).toBe(true);
+  });
+
+  test("full screen hides everything but the office and Exit brings it back", async ({ page }) => {
+    await openOffice(page);
+    const before = (await debug(page))!.zoom;
+    await page.getByTestId("fullscreen").click();
+    await expect(page.getByTestId("focus-bar")).toBeVisible();
+    await expect(page.getByTestId("vitals")).toHaveCount(0);
+    await expect(page.getByTestId("timeline")).toHaveCount(0);
+    await expect(page.getByTestId("roster")).toHaveCount(0);
+    await expect.poll(async () => (await debug(page))!.zoom).toBeGreaterThan(before);
+    expect((await debug(page))!.coverage).toBeGreaterThan(0.9);
+    await page.getByTestId("exit-fullscreen").click();
+    await expect(page.getByTestId("vitals")).toBeVisible();
+    await expect(page.getByTestId("focus-bar")).toHaveCount(0);
+  });
+
+  test("on a wide screen the empty margins carry the live feed, and full screen adds the crew", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await openOffice(page);
+    await expect(page.getByTestId("live-feed")).toBeVisible();
+    expect(await page.getByTestId("live-feed").locator("li").count()).toBeGreaterThan(0);
+    // The feed sits in the margin: it never overlaps the floor.
+    const feed = (await page.getByTestId("live-feed").boundingBox())!;
+    const d = (await debug(page))!;
+    const canvas = (await page.getByTestId("office-canvas").boundingBox())!;
+    const floorRight = canvas.x + canvas.width / 2 + (752 * d.zoom) / 2;
+    expect(feed.x).toBeGreaterThanOrEqual(floorRight - 1);
+    await page.getByTestId("fullscreen").click();
+    await expect(page.getByTestId("roster")).toBeVisible();
+    await expect(page.getByTestId("live-feed")).toBeVisible();
+  });
+
+  test("Z toggles full screen from the keyboard", async ({ page }) => {
+    await openOffice(page);
+    await page.locator("body").click({ position: { x: 5, y: 5 } });
+    await page.keyboard.press("z");
+    await expect(page.getByTestId("focus-bar")).toBeVisible();
+    await page.keyboard.press("z");
+    await expect(page.getByTestId("focus-bar")).toHaveCount(0);
+  });
+
+  test("the GitHub and X links sit left of Jump to, open in a new tab and never leak the opener", async ({ page }) => {
+    await openOffice(page);
+    const gh = page.getByTestId("link-github");
+    const x = page.getByTestId("link-x");
+    for (const a of [gh, x]) {
+      await expect(a).toBeVisible();
+      await expect(a).toHaveAttribute("target", "_blank");
+      await expect(a).toHaveAttribute("rel", /noopener/);
+      await expect(a).toHaveAttribute("href", /^https:\/\//);
+    }
+    const jump = await page.getByTestId("open-palette").boundingBox();
+    const bx = await x.boundingBox();
+    const bg = await gh.boundingBox();
+    expect(bg!.x).toBeLessThan(bx!.x);
+    expect(bx!.x + bx!.width).toBeLessThanOrEqual(jump!.x + 1);
+  });
+
+  test("the camera button saves the floor as a PNG without a server round trip", async ({ page }) => {
+    await openOffice(page);
+    const [download] = await Promise.all([page.waitForEvent("download"), page.getByTestId("snapshot").click()]);
+    expect(download.suggestedFilename()).toMatch(/^muster-office-.*\.png$/);
   });
 });

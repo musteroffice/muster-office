@@ -11,7 +11,9 @@ import { Timeline } from "./components/Timeline";
 import { Toasts } from "./components/Toasts";
 import { TopBar } from "./components/TopBar";
 import { Vitals } from "./components/Vitals";
-import { loadPref } from "./lib/prefs";
+import { toast } from "sonner";
+import { setFullScreen, toggleFullScreen } from "./lib/fullscreen";
+import { loadPref, savePref } from "./lib/prefs";
 import { playTone } from "./lib/sound";
 import { connectEvents } from "./sse";
 import { useOffice } from "./store";
@@ -127,6 +129,8 @@ function useShortcuts(): void {
         st.setMinimap(!st.minimap);
       } else if (e.key === "d" && st.view === "office") {
         st.setDirector(!st.director);
+      } else if (e.key === "z" && st.view === "office") {
+        toggleFullScreen();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -134,34 +138,59 @@ function useShortcuts(): void {
   }, []);
 }
 
+/** Leaving browser full screen (Esc) also leaves full-screen mode. */
+function useFullScreenSync(): void {
+  useEffect(() => {
+    const onChange = (): void => {
+      if (!document.fullscreenElement && useOffice.getState().focus) setFullScreen(false);
+    };
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+}
+
+/** One quiet tip the first time someone opens the office. */
+function useFirstRunTip(): void {
+  const ready = useOffice((s) => s.snapshot !== null);
+  useEffect(() => {
+    if (!ready || loadPref("tipSeen", false)) return;
+    savePref("tipSeen", true);
+    const t = setTimeout(() => toast.message("Tip", { description: "Press Ctrl K to jump to anyone, ? for every shortcut, Z for full screen.", duration: 8000 }), 1800);
+    return () => clearTimeout(t);
+  }, [ready]);
+}
+
 function Shell() {
   const view = useOffice((s) => s.view);
   const rosterOpen = useOffice((s) => s.rosterOpen);
   const hasProject = useOffice((s) => !!s.project);
+  const focus = useOffice((s) => s.focus);
   useTheme();
+  useFullScreenSync();
+  useFirstRunTip();
   usePageStatus();
   useAlertSounds();
   useShortcuts();
   useEffect(() => connectEvents(), []);
-  const showRoster = view === "office" && rosterOpen && hasProject;
+  const showRoster = view === "office" && rosterOpen && hasProject && !focus;
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="app">
+      <div className={focus ? "app app-focus" : "app"}>
         <a className="skip rounded-md bg-primary px-3 py-1.5 text-primary-foreground" href="#main">
           Skip to content
         </a>
-        <TopBar />
-        <Vitals />
+        {!focus && <TopBar />}
+        {!focus && <Vitals />}
         <div className={`workspace${showRoster ? " with-roster" : ""}`}>
           {showRoster && <Roster />}
           <main id="main" tabIndex={-1} aria-label={view === "office" ? "Office" : "Board"}>
             {view === "office" ? <OfficeView /> : <BoardView />}
-            {view === "office" && !rosterOpen && hasProject && <RosterTab />}
+            {view === "office" && !rosterOpen && hasProject && !focus && <RosterTab />}
           </main>
           <SidePanel />
         </div>
-        <Timeline />
+        {!focus && <Timeline />}
         <Toasts />
         <CommandPalette />
         <Help />

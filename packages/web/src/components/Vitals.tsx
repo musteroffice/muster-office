@@ -39,11 +39,13 @@ function Vital({
         <Icon aria-hidden="true" className={cn("size-3.5", TONE_TEXT[tone])} />
         {label}
       </span>
-      <span className={cn("text-xl font-semibold leading-7 tracking-tight", (tone === "bad" || tone === "warn") && TONE_TEXT[tone])}>{value}</span>
-      {sub && <span className="max-w-full truncate text-xs text-muted-foreground">{sub}</span>}
+      <span className="flex max-w-full items-baseline gap-2">
+        <span className={cn("text-xl font-semibold leading-6 tracking-tight", (tone === "bad" || tone === "warn") && TONE_TEXT[tone])}>{value}</span>
+        {sub && <span className="min-w-0 truncate text-xs text-muted-foreground">{sub}</span>}
+      </span>
     </>
   );
-  const cls = "flex min-w-0 flex-col items-start gap-0.5 rounded-lg border bg-card px-3 py-2 text-left transition-colors";
+  const cls = "flex min-w-0 flex-col items-start gap-0 rounded-lg border bg-card px-3 py-1.5 text-left transition-colors";
   if (!onClick) {
     return (
       <div className={cls} data-tone={tone} title={title}>
@@ -70,7 +72,7 @@ function Spark({ stamps, now }: { stamps: number[]; now: number }) {
   const max = Math.max(3, ...buckets);
   const pts = buckets.map((b, i) => `${(i / (N - 1)) * 96 + 2},${22 - (b / max) * 18}`);
   return (
-    <svg className="mt-0.5 h-5 w-full" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
+    <svg className="h-3.5 w-full" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
       <polygon points={`2,22 ${pts.join(" ")} 98,22`} className="fill-foreground/10" />
       <polyline points={pts.join(" ")} className="fill-none stroke-foreground/70" strokeWidth="1.5" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
     </svg>
@@ -109,7 +111,7 @@ export function Vitals() {
   const now = useNow();
   const stamps = useMemo(() => (project ? timeline.filter((e) => e.project === project.slug).slice(-200).map((e) => e.ts) : []), [timeline, project]);
   // Keep the row in the page grid even before there is data, so the layout never jumps.
-  if (!project) return <section className="min-h-[4.25rem] border-b" aria-label="Vital signs" />;
+  if (!project) return <section className="min-h-[3.75rem] border-b" aria-label="Vital signs" />;
   const v = summarize(project, now);
   const running = (jobs ?? []).filter((j) => j.state === "running").length;
   const lost = (jobs ?? []).filter((j) => j.lost).length;
@@ -119,7 +121,7 @@ export function Vitals() {
   const f = v.flow;
 
   return (
-    <section className="grid grid-cols-[repeat(6,minmax(8.5rem,1fr))] gap-2 overflow-x-auto border-b px-3 py-2 max-sm:gap-1.5 max-sm:px-2" aria-label="Vital signs" data-testid="vitals">
+    <section className="grid grid-cols-[repeat(6,minmax(8.5rem,1fr))] gap-2 overflow-x-auto border-b px-3 py-1.5 max-sm:gap-1.5 max-sm:px-2" aria-label="Vital signs" data-testid="vitals">
       <Vital
         label="Flow"
         icon={Activity}
@@ -180,7 +182,7 @@ export function Vitals() {
           if (view === "office") requestFocus({ type: "machine" });
         }}
       />
-      <div className="flex min-w-0 flex-col items-start gap-0.5 rounded-lg border bg-card px-3 py-2" role="img" aria-label={`${perMin} events in the last minute`}>
+      <div className="flex min-w-0 flex-col items-start gap-0 rounded-lg border bg-card px-3 py-1.5" role="img" aria-label={`${perMin} events in the last minute`}>
         <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <HeartPulse aria-hidden="true" className="size-3.5" />
           Pulse

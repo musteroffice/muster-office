@@ -25,13 +25,14 @@
   --muted-foreground: oklch(0.5 0.016 285.938);
   --accent: oklch(0.967 0.001 286.375);
   --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: oklch(0.52 0.21 27);
   --border: oklch(0.92 0.004 286.32);
   --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.705 0.015 286.067);
-  --success: oklch(0.53 0.14 152);
-  --warning: oklch(0.58 0.14 70);
-  --info: oklch(0.52 0.17 255);
+  /* Light-theme status colours are deep enough to read as text on white and on their own 10% tint (WCAG AA). */
+  --success: oklch(0.45 0.12 152);
+  --warning: oklch(0.47 0.11 65);
+  --info: oklch(0.46 0.16 255);
   /* The canvas paints its own background, so it reads this one as a plain #rrggbb. */
   --canvas: #f4f4f5;
 }
@@ -141,6 +142,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+.app-focus {
+  grid-template-rows: minmax(0, 1fr);
 }
 .workspace {
   display: grid;

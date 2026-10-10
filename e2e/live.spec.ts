@@ -14,7 +14,10 @@ test("follows real file changes within about a second", async ({ page, request }
   expect(home, "the live home is created by playwright.config.ts").toBeTruthy();
   const muster = openFixtureHome(home!);
 
-  await page.addInitScript(() => localStorage.setItem("muster-office:view", '"board"'));
+  await page.addInitScript(() => {
+    localStorage.setItem("muster-office:view", '"board"');
+    localStorage.setItem("muster-office:timelineOpen", "true"); // the list is collapsed by default in a short window
+  });
   await page.goto(`${LIVE}/`);
   await expect(page.getByTestId("board")).toBeVisible();
   await expect(page.getByTestId("demo-badge")).toHaveCount(0);

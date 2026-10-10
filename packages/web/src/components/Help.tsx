@@ -10,6 +10,7 @@ const KEYS: Array<[string[], string]> = [
   [["Arrows"], "Pan the camera (canvas focused)"],
   [["+", "-", "0"], "Zoom in, out, fit the floor"],
   [["N", "P"], "Next, previous agent"],
+  [["Z"], "Full screen: only the office, scaled to fill the window"],
   [["F"], "Follow the selected agent"],
   [["D"], "Director mode: the camera flies to the action (wall display)"],
   [["["], "Hide or show the crew list"],

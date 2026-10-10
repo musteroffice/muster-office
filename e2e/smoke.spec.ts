@@ -9,6 +9,8 @@ async function openOffice(page: Page, path = "/"): Promise<void> {
   await page.addInitScript(() => {
     try {
       localStorage.setItem("muster-office:view", '"office"');
+      localStorage.setItem("muster-office:tipSeen", "true");
+      localStorage.setItem("muster-office:timelineOpen", "true"); // the list is collapsed by default in a short window
     } catch {
       /* blocked */
     }
@@ -97,7 +99,8 @@ test.describe("demo office", () => {
     await page.getByTestId("office-canvas").focus();
     const z0 = await page.evaluate(() => window.__office?.zoom() ?? 0);
     await page.keyboard.press("+");
-    await expect.poll(() => page.evaluate(() => window.__office?.zoom())).toBe(Math.min(8, z0 + 1));
+    // Zooming leaves the "fill the window" scale and takes the next whole step.
+    await expect.poll(() => page.evaluate(() => window.__office?.zoom())).toBe(Math.min(8, Math.floor(z0) + 1));
     await page.keyboard.press("-");
     await page.keyboard.press("n");
     await expect(page.getByTestId("side-panel")).toBeVisible();

@@ -93,6 +93,8 @@ interface OfficeStore {
   sound: boolean;
   /** Director mode: the camera flies to the action by itself (for a wall display). */
   director: boolean;
+  /** Full-screen mode: only the office is shown, scaled to fill the window. */
+  focus: boolean;
   toasts: Toast[];
 
   setPointed(name: string | null): void;
@@ -103,6 +105,7 @@ interface OfficeStore {
   setMinimap(v: boolean): void;
   setSound(v: boolean): void;
   setDirector(v: boolean): void;
+  setFocus(v: boolean): void;
   dismissToast(id: number): void;
   setConn(c: ConnState): void;
   touchMessage(): void;
@@ -161,8 +164,8 @@ export const useOffice = create<OfficeStore>()((set, get) => ({
   showBodies: loadPref("showBodies", false),
   theme: loadPref<Theme>("theme", "system", isTheme),
   dayNight: loadPref("dayNight", true),
-  // Phones get the one-line timeline by default; the floor needs the room.
-  timelineOpen: loadPref("timelineOpen", typeof window === "undefined" || window.innerWidth > 760),
+  // Phones and short windows get the one-line timeline by default; the floor needs the room.
+  timelineOpen: loadPref("timelineOpen", typeof window === "undefined" || (window.innerWidth > 760 && window.innerHeight >= 1000)),
   boardLayout: loadPref<BoardLayout>("boardLayout", "table", (v): v is BoardLayout => v === "table" || v === "kanban"),
   filters: { project: "all", agent: "all", kinds: [] },
   pointed: null,
@@ -173,6 +176,7 @@ export const useOffice = create<OfficeStore>()((set, get) => ({
   minimap: loadPref("minimap", true),
   sound: loadPref("sound", false),
   director: false,
+  focus: false,
   toasts: [],
 
   setPointed: (pointed) => set({ pointed }),
@@ -192,6 +196,7 @@ export const useOffice = create<OfficeStore>()((set, get) => ({
     set({ sound });
   },
   setDirector: (director) => set(director ? { director, follow: false } : { director }),
+  setFocus: (focus) => set({ focus }),
   dismissToast: (id) => set((st) => ({ toasts: st.toasts.filter((t) => t.id !== id) })),
   setConn: (conn) => set({ conn }),
   touchMessage: () => set({ lastMessageAt: Date.now() }),

@@ -36,12 +36,14 @@ function hourParam(): number | null {
   }
 }
 export const MIN_ZOOM = 1;
+/** The smallest scale "fill" may use, so a tiny window still shows something legible. */
+export const MIN_FILL = 0.4;
 export const MAX_ZOOM = 8;
 
 export interface EngineHooks {
   onHover(target: Target | null, clientX: number, clientY: number): void;
   onSelect(target: Target | null): void;
-  onZoom(zoom: number): void;
+  onZoom(zoom: number, fill: boolean): void;
 }
 
 export interface EngineDebug {
@@ -68,6 +70,9 @@ export interface EngineDebug {
   hour: number;
   cam: { x: number; y: number };
   flying: boolean;
+  fill: boolean;
+  /** Fraction of the canvas covered by the floor, 0..1 (1 when it fills the window along one axis). */
+  coverage: number;
   /** Smoothed ms per render section. */
   profile: Record<string, number>;
 }
@@ -108,6 +113,8 @@ export class OfficeEngine {
   private lastInput = performance.now();
   private dirty = true;
   private zoom = 2;
+  /** True while the whole floor is scaled to fill the window (the zoom is then fractional). */
+  private fill = false;
   private camX = 0;
   private camY = 0;
   private cssW = 0;
@@ -139,6 +146,8 @@ export class OfficeEngine {
   private stepMs = 0;
   /** Until the viewer moves the camera, the opening view is re-applied as the layout settles. */
   private needFrame = true;
+  /** `?view=close` opens zoomed on the agents instead of showing the whole floor. */
+  private fillByDefault = !/[?&]close\b/.test(typeof window === "undefined" ? "" : window.location.search);
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -327,7 +336,8 @@ export class OfficeEngine {
     g.imageSmoothingEnabled = false;
     this.blitVoid(g, s);
     g.setTransform(s, 0, 0, s, Math.round(-this.camX * s), Math.round(-this.camY * s));
-    g.imageSmoothingEnabled = false;
+    // Pixels stay hard when enlarging; when the whole floor is shrunk to fit, smoothing keeps it readable.
+    g.imageSmoothingEnabled = s < 1;
     const st = useOffice.getState();
     const pointed: Target | null = st.pointed && this.world.project ? { type: "agent", project: this.world.project.slug, name: st.pointed } : null;
     this.renderer.render(g, { dayNight: this.dayNight, selected: this.selected, hover: this.hover, now: Date.now(), live: st.conn === "live", pointed });
@@ -468,7 +478,8 @@ export class OfficeEngine {
 
   /** Device pixels per world pixel, always an integer so the pixel art stays crisp. */
   private scale(): number {
-    return Math.max(1, Math.round(this.zoom * this.dpr));
+    // Whole device pixels per world pixel keep the art crisp; "fill" trades that for using every pixel of the window.
+    return this.fill ? Math.max(0.25, this.zoom * this.dpr) : Math.max(1, Math.round(this.zoom * this.dpr));
   }
 
   resize(): void {
@@ -481,7 +492,8 @@ export class OfficeEngine {
     this.canvas.style.height = `${this.cssH}px`;
     this.canvas.width = Math.round(this.cssW * this.dpr);
     this.canvas.height = Math.round(this.cssH * this.dpr);
-    if (this.needFrame) this.frameAction();
+    if (this.fill && this.world.project) this.fitFill();
+    else if (this.needFrame) this.frameAction();
     else this.clampCamera();
     this.sizeMinimap();
     this.dirty = true;
@@ -490,6 +502,10 @@ export class OfficeEngine {
   /** Largest integer zoom that shows the whole width, then centre horizontally. */
   fit(): void {
     this.userMoved();
+    if (this.world.project) {
+      this.fitFill();
+      return;
+    }
     const { w, h } = this.world.worldSize();
     const both = Math.floor(Math.min(this.cssW / w, this.cssH / h));
     // Prefer the whole floor; failing that, 2x when the width fits (the viewer pans down).
@@ -498,7 +514,27 @@ export class OfficeEngine {
     this.camX = -(this.cssW / this.zoom - w) / 2;
     this.camY = 0;
     this.clampCamera();
-    this.fitted = this.world.project?.slug ?? "";
+    this.dirty = true;
+  }
+
+  /**
+   * Scale the whole floor to fill the window, as large as it will go. This is the default view and what
+   * full-screen mode uses: one screen, nothing to pan. The scale is fractional, so pixels are not all
+   * the same size, which is the price of using every pixel of the window.
+   */
+  fitFill(): void {
+    if (!this.world.project) return;
+    const { w, h } = this.world.worldSize();
+    this.fill = true;
+    const margin = 8; // css px of air around the floor
+    // Full-screen mode floats a small bar over the top-left corner; leave it a strip so it never covers the wall.
+    const top = useOffice.getState().focus ? 52 : 0;
+    const z = Math.min((this.cssW - margin) / w, (this.cssH - margin - top) / h);
+    this.setZoomInternal(Math.max(MIN_FILL, Math.min(MAX_ZOOM, z)));
+    this.camX = -(this.cssW / this.zoom - w) / 2;
+    this.camY = -(top + (this.cssH - top - h * this.zoom) / 2) / this.zoom;
+    this.fly = null;
+    this.fitted = this.world.project.slug;
     this.dirty = true;
   }
 
@@ -511,8 +547,13 @@ export class OfficeEngine {
       this.needFrame = true;
       return;
     }
+    if (this.fillByDefault) {
+      this.fitFill();
+      return;
+    }
     const { w, h } = this.world.worldSize();
     const z = this.cssW >= 760 && this.cssH >= 360 ? 2 : 1;
+    this.fill = false;
     this.setZoomInternal(z);
     const seen = [...this.world.actors.values()].filter((a) => a.visible);
     let cx = w / 2;
@@ -531,12 +572,20 @@ export class OfficeEngine {
   }
 
   private setZoomInternal(z: number): void {
-    this.zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(z)));
-    this.hooks.onZoom(this.zoom);
+    if (this.fill) this.zoom = Math.max(MIN_FILL, Math.min(MAX_ZOOM, Math.round(z * 100) / 100));
+    else this.zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(z)));
+    this.hooks.onZoom(this.zoom, this.fill);
   }
 
   setZoom(z: number, anchorX = this.cssW / 2, anchorY = this.cssH / 2): void {
     this.userMoved();
+    if (this.fill) {
+      // Leaving fill: the next whole step from where the fractional zoom is now.
+      const stepped = Math.abs(z - this.zoom) <= 1.0001; // a +/- step or a wheel notch; anything bigger is a destination
+      const dir = z >= this.zoom ? 1 : -1;
+      this.fill = false;
+      if (stepped) z = dir > 0 ? Math.floor(this.zoom) + 1 : Math.max(MIN_ZOOM, Math.ceil(this.zoom) - 1);
+    }
     const before = { x: this.camX + anchorX / this.zoom, y: this.camY + anchorY / this.zoom };
     this.setZoomInternal(z);
     this.camX = before.x - anchorX / this.zoom;
@@ -547,6 +596,11 @@ export class OfficeEngine {
 
   getZoom(): number {
     return this.zoom;
+  }
+
+  /** The floor's size in world pixels, for layout of the panels around it. */
+  floorSize(): { w: number; h: number } {
+    return this.world.worldSize();
   }
 
   private clampCamera(): void {
@@ -571,6 +625,11 @@ export class OfficeEngine {
   /** Centre the view on a world pixel (used by tests and screenshots). */
   centerOn(wx: number, wy: number): void {
     this.userMoved();
+    if (this.fill) {
+      // Pointing at a spot from the whole-floor view means "take me there", so come in a little.
+      this.fill = false;
+      this.setZoomInternal(2);
+    }
     this.camX = wx - this.cssW / this.zoom / 2;
     this.camY = wy - this.cssH / this.zoom / 2;
     this.clampCamera();
@@ -656,6 +715,8 @@ export class OfficeEngine {
     const L = this.world.layout;
     const T = 16;
     switch (r.type) {
+      case "fit":
+        return null;
       case "agent": {
         const a = this.world.actors.get(r.name);
         if (!a) return null;
@@ -689,6 +750,11 @@ export class OfficeEngine {
 
   private focusRequest(r: FocusRequest): void {
     if (useOffice.getState().view !== "office") return;
+    if (r.type === "fit") {
+      this.fitFill();
+      this.wake();
+      return;
+    }
     const spot = this.spotOf(r);
     if (!spot) return;
     this.flyTo(spot.x, spot.y, Math.max(this.zoom, spot.zoom));
@@ -843,8 +909,16 @@ export class OfficeEngine {
       hour: w.hour,
       cam: { x: Math.round(this.camX), y: Math.round(this.camY) },
       flying: this.fly !== null,
+      fill: this.fill,
+      coverage: Math.max(Math.min(1, (this.world.worldSize().w * this.zoom) / Math.max(1, this.cssW)), Math.min(1, (this.world.worldSize().h * this.zoom) / Math.max(1, this.cssH))),
       profile: { ...this.renderer.profile, step: this.stepMs },
     };
+  }
+
+  /** The picture as it is on screen, as a PNG, for the viewer to keep or share. Nothing leaves the browser. */
+  snapshot(): Promise<Blob | null> {
+    this.draw();
+    return new Promise((resolve) => this.canvas.toBlob((b) => resolve(b), "image/png"));
   }
 
   /** Test hook: pixel position of an agent on screen (CSS px relative to the canvas). */
