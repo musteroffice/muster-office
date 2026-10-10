@@ -3,7 +3,7 @@ import { PIXEL_ARRAYS, PIXEL_ARRAY_WIDTH, lookFor, poseKey } from "../src/office
 import { getSpriteSet, setSpriteSet, type SpriteSet } from "../src/office/sprites";
 import { glyph, textWidth } from "../src/office/font";
 import { modelAbbrev, nametag, steadyFor } from "../src/office/actors";
-import { AGENT_STATES } from "@automicvault/shared";
+import { AGENT_STATES } from "@muster-office/shared";
 
 describe("pixel arrays", () => {
   it("are exactly 16 columns wide (rows of equal length compose cleanly)", () => {

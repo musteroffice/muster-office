@@ -9,7 +9,7 @@ import {
   type Snapshot,
   type TimelineEvent,
   type TimelineKind,
-} from "@automicvault/shared";
+} from "@muster-office/shared";
 import { alertsFor } from "./lib/alerts";
 import type { FocusRequest } from "./lib/bus";
 import { isTheme, isViewMode, loadPref, savePref, type Theme, type ViewMode } from "./lib/prefs";

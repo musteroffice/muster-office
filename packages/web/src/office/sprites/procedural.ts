@@ -1,4 +1,4 @@
-import type { Role } from "@automicvault/shared";
+import type { Role } from "@muster-office/shared";
 import { C, HAIRS, SHIRTS, SKINS, hash, shade } from "../palette";
 import type { Dir } from "../layout";
 import type { Hat, Look, Pose, PropName, SpriteSet } from "./types";

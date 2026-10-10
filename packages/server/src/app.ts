@@ -112,7 +112,7 @@ export function createApp(deps: AppDeps): Hono {
     c.header("Cache-Control", "no-store");
     return c.json({
       ok: true,
-      name: "automicvault",
+      name: "muster-office",
       version: deps.version,
       demo: deps.demo,
       uptimeSec: Math.round((Date.now() - deps.startedAt) / 1000),
@@ -182,7 +182,7 @@ export function createApp(deps: AppDeps): Hono {
 
 async function serveStatic(c: Context, root: string | null): Promise<Response> {
   if (root === null) {
-    return c.text("Automicvault API is running, but the web app has not been built. Run `npm run build`.", 200);
+    return c.text("Muster Office API is running, but the web app has not been built. Run `npm run build`.", 200);
   }
   let rel: string;
   try {

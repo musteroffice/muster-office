@@ -18,13 +18,13 @@ original brief is marked **(deviation)**.
    document on one bad field. The office must do the opposite (skip the bad row, keep the rest,
    show a *degraded* badge), so the decoders are small explicit functions with per-row recovery.
    Muster's `Schema` definitions remain the reference; the contract is in `docs/data-contract.md`.
-5. **One bundled server file.** `esbuild` bundles the server and `@automicvault/shared` into
+5. **One bundled server file.** `esbuild` bundles the server and `@muster-office/shared` into
    `dist/server/cli.js` (runtime deps `hono`, `@hono/node-server`, `chokidar` stay external);
-   Vite writes the web app to `dist/web`. That is what makes `npx automicvault` a single package.
+   Vite writes the web app to `dist/web`. That is what makes `npx muster-office` a single package.
 
 ## Data
 
-6. **State root = `--home` > `AUTOMICVAULT_HOME` > `HOME` > `os.homedir()`.** Muster only
+6. **State root = `--home` > `MUSTER_OFFICE_HOME` > `HOME` > `os.homedir()`.** Muster only
    relocates via `HOME`; there is no XDG support to honour.
 7. **Bodies are fetched lazily, not hidden by CSS.** Desk/owner/report bodies never ride the SSE
    stream. With "show bodies" off the browser never receives them; turning it on makes the UI
@@ -76,7 +76,7 @@ original brief is marked **(deviation)**.
 
 ## Added while building the office
 
-24. **The demo script lives in `@automicvault/shared/demo`**, not in the server, because both the
+24. **The demo script lives in `@muster-office/shared/demo`**, not in the server, because both the
     server's simulator and the web tests need the same pure script. It is a separate export, so the
     browser bundle never includes it.
 25. **Geometry is rebuilt only on structural changes** (lane set, kinds, states, archived flags). Every

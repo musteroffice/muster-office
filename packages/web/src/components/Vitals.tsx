@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Activity, HeartPulse, Inbox, PackageCheck, Server, Users, type LucideIcon } from "lucide-react";
-import { deskPiles, flowInfo, isDeadDesk, type ProjectView } from "@automicvault/shared";
+import { deskPiles, flowInfo, isDeadDesk, type ProjectView } from "@muster-office/shared";
 import { cn } from "@/lib/utils";
 import { requestFocus } from "../lib/bus";
 import type { Tone } from "../lib/meta";

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { AgentStateOrUnknown, Role } from "@automicvault/shared";
+import type { AgentStateOrUnknown, Role } from "@muster-office/shared";
 import { steadyFor } from "../office/actors";
 import { getSpriteSet } from "../office/sprites";
 import { lookFor } from "../office/sprites/procedural";

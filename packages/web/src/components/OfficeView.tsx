@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { backlog, deployName, deskPiles, flowInfo, inFlight, isDeadDesk, jobIsStale, laneDeployLevel, type JobView, type ProjectView } from "@automicvault/shared";
+import { backlog, deployName, deskPiles, flowInfo, inFlight, isDeadDesk, jobIsStale, laneDeployLevel, type JobView, type ProjectView } from "@muster-office/shared";
 import { OfficeEngine, targetKey, toSelection } from "../office/engine";
 import type { Target } from "../office/world";
 import { ageOf, fmtKB, modelShort, plainLabel } from "../lib/format";
@@ -145,7 +145,7 @@ async function saveSnapshot(engine: OfficeEngine | null, slug: string | undefine
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `automicvault-${slug ?? "floor"}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.png`;
+  a.download = `muster-office-${slug ?? "floor"}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")}.png`;
   document.body.appendChild(a);
   a.click();
   a.remove();

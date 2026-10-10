@@ -10,8 +10,8 @@ import {
   type JobView,
   type ProjectView,
   type RawDeskItem,
-} from "@automicvault/shared";
-import { LOOP, PROJECTS, deskLines, jobDocuments, projectDocument } from "@automicvault/shared/demo";
+} from "@muster-office/shared";
+import { LOOP, PROJECTS, deskLines, jobDocuments, projectDocument } from "@muster-office/shared/demo";
 import { TILE } from "../src/office/layout";
 import { tileOf } from "../src/office/transitions";
 import { OfficeWorld, type Target } from "../src/office/world";

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import type { AgentView } from "@automicvault/shared";
+import type { AgentView } from "@muster-office/shared";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";

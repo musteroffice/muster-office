@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Automicvault: UI chrome on shadcn/ui (new-york, zinc) with Tailwind v4 and Lucide icons.
+ * Muster Office: UI chrome on shadcn/ui (new-york, zinc) with Tailwind v4 and Lucide icons.
  * The office itself is drawn on a canvas; everything around it is plain shadcn tokens.
  * Status colours (success, warning, info, destructive) are used only to say how something is doing.
  */

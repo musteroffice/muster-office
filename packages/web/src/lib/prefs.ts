@@ -1,6 +1,6 @@
 /** Per-viewer conveniences in localStorage. Every access is guarded: storage may be blocked or absent. */
 
-const PREFIX = "automicvault:";
+const PREFIX = "muster-office:";
 
 export function loadPref<T>(key: string, fallback: T, validate?: (v: unknown) => v is T): T {
   try {

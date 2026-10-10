@@ -20,7 +20,7 @@ await ctx.rebuild();
 await ctx.watch();
 
 const run = (cmd, args) => spawn(cmd, args, { stdio: "inherit", shell: process.platform === "win32" });
-const server = run(process.execPath, ["--watch", "bin/automicvault.mjs", "--port", "4747", ...(demo ? ["--demo"] : [])]);
+const server = run(process.execPath, ["--watch", "bin/muster-office.mjs", "--port", "4747", ...(demo ? ["--demo"] : [])]);
 const vite = run("npx", ["vite", "packages/web", "--config", "packages/web/vite.config.ts"]);
 const stop = () => {
   server.kill();

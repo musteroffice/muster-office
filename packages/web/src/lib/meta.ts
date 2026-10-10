@@ -19,7 +19,7 @@ import {
   Unplug,
   type LucideIcon,
 } from "lucide-react";
-import type { AgentStateOrUnknown, DeskKind, LaneDelivery, OpenKind, Role } from "@automicvault/shared";
+import type { AgentStateOrUnknown, DeskKind, LaneDelivery, OpenKind, Role } from "@muster-office/shared";
 
 /** Presentation metadata shared by the Board, the side panel and the canvas badges. */
 export type Tone = "neutral" | "ok" | "warn" | "bad" | "info" | "ghost";

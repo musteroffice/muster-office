@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import { ChevronDown, ChevronUp, Cpu, Inbox, MessageSquare, PackageCheck, Radio, Rows3, Settings2, Truck, User, type LucideIcon } from "lucide-react";
-import type { TimelineKind } from "@automicvault/shared";
+import type { TimelineKind } from "@muster-office/shared";
 import { useShallow } from "zustand/react/shallow";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";

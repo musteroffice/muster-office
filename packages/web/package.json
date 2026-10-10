@@ -1,5 +1,5 @@
 {
-  "name": "@automicvault/web",
+  "name": "@muster-office/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@automicvault/shared": "*",
+    "@muster-office/shared": "*",
     "@tailwindcss/vite": "^4.3.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

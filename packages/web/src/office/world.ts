@@ -11,7 +11,7 @@ import {
   type LaneView,
   type OpenKind,
   type ProjectView,
-} from "@automicvault/shared";
+} from "@muster-office/shared";
 import { steadyFor, type Actor, type Emote } from "./actors";
 import { CritterBrain, type Critter } from "./critter";
 import type { PulseSpike } from "./fx";

@@ -11,7 +11,7 @@ import {
   reportDocument,
   visionDocument,
   type Clock,
-} from "@automicvault/shared/demo";
+} from "@muster-office/shared/demo";
 
 export interface DemoOptions {
   /** Milliseconds per simulator step. */

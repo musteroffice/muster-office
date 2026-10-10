@@ -1,4 +1,4 @@
-import type { AgentStateOrUnknown, AgentView, Thinking } from "@automicvault/shared";
+import type { AgentStateOrUnknown, AgentView, Thinking } from "@muster-office/shared";
 import type { Dir, Tile } from "./layout";
 import type { Look, Pose } from "./sprites/types";
 import { C } from "./palette";

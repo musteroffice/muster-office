@@ -1,4 +1,4 @@
-# Automicvault
+# Muster Office
 
 A read-only, localhost, live dashboard for [pi-muster](https://github.com/joelhooks/pi-muster) that
 shows your agents as pixel-art characters working in an office.
@@ -40,14 +40,14 @@ loses a job and queues work at the door.
 With real Muster data:
 
 ```bash
-npm run build && node bin/automicvault.mjs        # or: npx automicvault
+npm run build && node bin/muster-office.mjs        # or: npx muster-office
 ```
 
 | Option | Meaning |
 | --- | --- |
 | `--demo` | Run the built-in simulator instead of reading files |
 | `--port <n>` | Port (default 4747; if you do not pass one and it is busy, the next free port is used; `0` = any) |
-| `--home <dir>` | Home directory that contains `.local/state/muster` (default `$HOME`; env `AUTOMICVAULT_HOME`) |
+| `--home <dir>` | Home directory that contains `.local/state/muster` (default `$HOME`; env `MUSTER_OFFICE_HOME`) |
 | `--poll` | Poll the filesystem instead of using native watchers (network drives, some containers) |
 | `--tick-ms <n>` | Demo only: milliseconds per simulator step (default 2500) |
 
@@ -118,7 +118,7 @@ Under `prefers-reduced-motion` nothing floats or wanders (Biscuit sleeps), and t
 ### Controls
 
 - **One screen:** the whole floor opens scaled to fill the window, nothing to pan. When the window is wider than the floor needs, the empty margins carry the live feed and the desk's open items. **Full screen** (`Z`, or the expand button in the top bar) goes browser full screen and leaves only the office, the floors, a one-line summary and the way out; the margins then hold the crew list and the feed. `fit` brings the whole-floor view back after zooming. (The fill scale is fractional, so pixels are not all one size; zooming with `+`/`-`/the wheel goes back to whole steps and crisp pixels.)
-- **Links and sharing:** a GitHub and an X button sit left of *Jump to…*; the camera button in the corner saves what you see as a PNG, made entirely in the browser. Both links are plain anchors the viewer clicks (`target=_blank`, `rel=noopener noreferrer`); the page never fetches them. By default GitHub opens this repository and X opens a pre-filled post about Automicvault. Point them at your own accounts at build time: `VITE_GITHUB_URL=https://github.com/you/automicvault VITE_X_URL=https://x.com/you npm run build`.
+- **Links and sharing:** a GitHub and an X button sit left of *Jump to…*; the camera button in the corner saves what you see as a PNG, made entirely in the browser. Both links are plain anchors the viewer clicks (`target=_blank`, `rel=noopener noreferrer`); the page never fetches them. By default GitHub opens this repository and X opens a pre-filled post about Muster Office. Point them at your own accounts at build time: `VITE_GITHUB_URL=https://github.com/you/muster-office VITE_X_URL=https://x.com/you npm run build`.
 - **Crew list** (left): everyone on the floor with a sprite portrait, state pill, lane and model; whoever needs attention is first. Hover outlines them on the floor, click flies the camera there, double-click follows them. `[` hides it.
 - **Vital signs** (under the top bar): each card is a button that takes you to what it counts. Flow turns red when the project stalls; the desk shows a flame when something has been waiting.
 - **Alerts:** failures, silent or interrupted agents, new blocked/approval/decision items, deployed/proven deliveries, lost jobs and flow stalls raise a toast with a *Show* button. Routine progress never interrupts. The tab title and favicon show the count too. Optional **alert sounds** (off by default) are synthesised in the browser; nothing is downloaded.
@@ -150,7 +150,7 @@ The light theme, and the same floor with no colour at all (`mono`, which is the 
 
 ## Data sources (all read-only)
 
-Resolved from `--home` / `AUTOMICVAULT_HOME` / `$HOME`, exactly as Muster resolves its own home.
+Resolved from `--home` / `MUSTER_OFFICE_HOME` / `$HOME`, exactly as Muster resolves its own home.
 Full schemas and state enums are in [docs/data-contract.md](docs/data-contract.md); the source of truth is the pi-muster repo.
 
 | File | Used for |
@@ -226,7 +226,7 @@ docs/             data-contract, decisions, sprites
 
 ```bash
 node scripts/fixture-home.mjs /tmp/muster-home --loop     # writes a Muster-shaped home and keeps changing it
-node bin/automicvault.mjs --home /tmp/muster-home
+node bin/muster-office.mjs --home /tmp/muster-home
 ```
 
 **Screenshots and GIFs.** `scripts/screenshot.mjs` drives the page with Playwright (read-only):

@@ -1,4 +1,4 @@
-import { heatTier, jobIsStale, type JobView } from "@automicvault/shared";
+import { heatTier, jobIsStale, type JobView } from "@muster-office/shared";
 import { nametag, steadyFor, type Actor } from "./actors";
 import { catSprite } from "./critter";
 import { LightingPass, PULSE, PULSE_INNER, ambientFor, drawMotes, drawWindows, traceAt, weatherFor, type LightSpot } from "./fx";

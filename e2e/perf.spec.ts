@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import type { Snapshot } from "@automicvault/shared";
+import type { Snapshot } from "@muster-office/shared";
 
 /**
  * Perf budget under a hot stream: this server emits a new simulator step every 70 ms
@@ -14,7 +14,7 @@ test.use({ trace: "off" });
 
 test("stays smooth at 800+ events a minute", async ({ page, request }) => {
   test.setTimeout(60_000);
-  await page.addInitScript(() => localStorage.setItem("automicvault:view", '"office"'));
+  await page.addInitScript(() => localStorage.setItem("muster-office:view", '"office"'));
   await page.goto(`${HOT}/`);
   await expect(page.getByTestId("office-canvas")).toBeVisible();
   await expect.poll(async () => (await debug(page))?.visibleActors ?? 0).toBeGreaterThan(0);

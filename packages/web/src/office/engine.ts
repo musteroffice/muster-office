@@ -1,4 +1,4 @@
-import type { Snapshot } from "@automicvault/shared";
+import type { Snapshot } from "@muster-office/shared";
 import { onFocus, type FocusRequest } from "../lib/bus";
 import { onChanges, useOffice, type ChangeBatch, type Selection } from "../store";
 import { steadyFor } from "./actors";

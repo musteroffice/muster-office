@@ -1,4 +1,4 @@
-import { formatAge } from "@automicvault/shared";
+import { formatAge } from "@muster-office/shared";
 
 export function ageOf(iso: string | null | undefined, now: number): string {
   if (!iso) return "—";

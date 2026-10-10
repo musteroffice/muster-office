@@ -1,8 +1,8 @@
 // Builds a throwaway "Muster home" from the repo's test fixtures, laid out exactly like a real install.
-// It is a development and testing aid: the Automicvault server itself never writes anywhere.
+// It is a development and testing aid: the Muster Office server itself never writes anywhere.
 //
 //   node scripts/fixture-home.mjs <dir> [--loop]
-//   node bin/automicvault.mjs --home <dir>
+//   node bin/muster-office.mjs --home <dir>
 //
 // With --loop it keeps changing the catalog the way Muster does (write a temp file, rename it over
 // project.json) so you can watch the live path without Muster installed.
@@ -65,7 +65,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     process.exit(2);
   }
   const h = makeFixtureHome(resolve(dir));
-  console.log(`fixture Muster home written to ${h.home}\nrun: node bin/automicvault.mjs --home "${h.home}"`);
+  console.log(`fixture Muster home written to ${h.home}\nrun: node bin/muster-office.mjs --home "${h.home}"`);
   if (process.argv.includes("--loop")) {
     const cycle = ["running", "silent", "nudged", "restarted", "running", "reported", "verified", "landed"];
     let i = 0;

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { AGENT_STATES, type Snapshot } from "@automicvault/shared";
+import { AGENT_STATES, type Snapshot } from "@muster-office/shared";
 
 const EMPTY = "http://127.0.0.1:4798";
 
@@ -8,9 +8,9 @@ const debug = (page: Page) => page.evaluate(() => window.__office?.debug());
 async function openOffice(page: Page, path = "/"): Promise<void> {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("automicvault:view", '"office"');
-      localStorage.setItem("automicvault:tipSeen", "true");
-      localStorage.setItem("automicvault:timelineOpen", "true"); // the list is collapsed by default in a short window
+      localStorage.setItem("muster-office:view", '"office"');
+      localStorage.setItem("muster-office:tipSeen", "true");
+      localStorage.setItem("muster-office:timelineOpen", "true"); // the list is collapsed by default in a short window
     } catch {
       /* blocked */
     }
@@ -109,7 +109,7 @@ test.describe("demo office", () => {
 
 test.describe("board view (accessible fallback)", () => {
   test("shows every lane and agent as tables, and agrees with the data", async ({ page, request }) => {
-    await page.addInitScript(() => localStorage.setItem("automicvault:view", '"board"'));
+    await page.addInitScript(() => localStorage.setItem("muster-office:view", '"board"'));
     await page.goto("/");
     await expect(page.getByTestId("board")).toBeVisible();
     const snap = (await (await request.get("/api/snapshot")).json()) as Snapshot;
@@ -132,7 +132,7 @@ test.describe("board view (accessible fallback)", () => {
   });
 
   test("bodies stay hidden until the toggle is on", async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem("automicvault:view", '"board"'));
+    await page.addInitScript(() => localStorage.setItem("muster-office:view", '"board"'));
     await page.goto("/");
     await expect(page.getByTestId("board")).toBeVisible();
     await page.getByRole("tab", { name: "Harbor API" }).click();

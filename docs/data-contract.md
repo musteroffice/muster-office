@@ -1,12 +1,12 @@
 # Data contract
 
-Everything Automicvault reads, where it comes from, and what shape it has.
+Everything Muster Office reads, where it comes from, and what shape it has.
 The source of truth is [`joelhooks/pi-muster`](https://github.com/joelhooks/pi-muster)
 at commit `e415c70` (2026-10-09). File references below are to that repo.
 Where this document and the task prompt disagreed, **the source won**; the
 differences are listed at the end under [Differences from the brief](#differences-from-the-brief).
 
-Automicvault is strictly read-only. It never writes, locks, renames or deletes
+Muster Office is strictly read-only. It never writes, locks, renames or deletes
 anything under a Muster path.
 
 ## 1. Path resolution
@@ -29,8 +29,8 @@ Muster has exactly one relocation knob for state: the home directory
 | Heavy sample cache | `.local/state/muster/jobs/samples.json` | `src/heavy-lock.ts:115` |
 | Relay counters | `.local/state/muster/relay-events.jsonl` | `src/relay-events.ts:24` |
 
-`home` resolves in this order in Automicvault: `--home <dir>` flag, then
-`AUTOMICVAULT_HOME`, then `HOME`, then `os.homedir()`.
+`home` resolves in this order in Muster Office: `--home <dir>` flag, then
+`MUSTER_OFFICE_HOME`, then `HOME`, then `os.homedir()`.
 
 Files deliberately **not** read: `~/.config/muster/*` (roster, machines, network
 config), `network-*` identity/peer files, `launches/`, `gates/`, `session-successors.jsonl`,
@@ -147,7 +147,7 @@ Lane {
 **Backfill** (`Project` transform): a lane with no `delivery` becomes `none` if it has no
 committed packet; otherwise `proven` (evidence `before done-live`) when its newest committed
 packet is older than `2026-10-05T04:14:03Z`, else `landed` (evidence
-`delivery record missing (written by an older Muster); not proven`). Automicvault
+`delivery record missing (written by an older Muster); not proven`). Muster Office
 reproduces this so old catalogs render the same way Muster shows them.
 
 `DEPLOY_RULE_CAPS`: `customer-facing`/`money`/`outbound-sends`/`slow-rollback` ⇒ 1,

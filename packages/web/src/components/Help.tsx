@@ -26,7 +26,7 @@ export function Help() {
       <DialogContent className="sm:max-w-lg" aria-describedby="help-desc">
         <DialogHeader>
           <DialogTitle>Keyboard shortcuts</DialogTitle>
-          <DialogDescription id="help-desc">Automicvault only reads. Nothing here can change an agent, a lane or a desk item.</DialogDescription>
+          <DialogDescription id="help-desc">Muster Office only reads. Nothing here can change an agent, a lane or a desk item.</DialogDescription>
         </DialogHeader>
         <dl className="grid gap-2">
           {KEYS.map(([keys, what]) => (

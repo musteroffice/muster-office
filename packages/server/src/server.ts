@@ -7,7 +7,7 @@ import { OfficeModel, capBody } from "./model.js";
 import type { DataSource } from "./sink.js";
 
 export interface StartOptions {
-  /** Muster home directory (`--home` > AUTOMICVAULT_HOME > HOME > os.homedir()). */
+  /** Muster home directory (`--home` > MUSTER_OFFICE_HOME > HOME > os.homedir()). */
   home: string;
   /** 0 picks a free port. */
   port: number;

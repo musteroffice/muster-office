@@ -211,7 +211,7 @@ export function TopBar() {
     <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b bg-background px-3 py-2">
       <div className="flex items-center gap-2">
         <Logo />
-        <h1 className="max-sm:sr-only text-sm font-semibold tracking-tight">Automicvault</h1>
+        <h1 className="max-sm:sr-only text-sm font-semibold tracking-tight">Muster Office</h1>
         {demo && (
           <Badge variant="outline" data-testid="demo-badge" title="Synthetic data from the built-in simulator. Nothing on this screen is real." className="rounded-md border-warning/50 font-mono text-[0.6875rem] tracking-wider text-warning">
             DEMO

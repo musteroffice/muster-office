@@ -3,9 +3,9 @@ import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { defineConfig, type ProxyOptions } from "vite";
 
-const target = process.env["AUTOMICVAULT_DEV_SERVER"] ?? "http://127.0.0.1:4747";
+const target = process.env["MUSTER_OFFICE_DEV_SERVER"] ?? "http://127.0.0.1:4747";
 
-// The Automicvault server only answers loopback Host/Origin values, so the dev proxy rewrites them.
+// The Muster Office server only answers loopback Host/Origin values, so the dev proxy rewrites them.
 const proxied = (): ProxyOptions => ({
   target,
   changeOrigin: true,

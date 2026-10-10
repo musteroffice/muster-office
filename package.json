@@ -1,5 +1,5 @@
 {
-  "name": "automicvault",
+  "name": "muster-office",
   "version": "0.1.0",
   "description": "Read-only, localhost, live pixel-art office dashboard for pi-muster.",
   "license": "MIT",
@@ -9,7 +9,7 @@
     "node": ">=20"
   },
   "bin": {
-    "automicvault": "bin/automicvault.mjs"
+    "muster-office": "bin/muster-office.mjs"
   },
   "files": [
     "bin",
@@ -24,10 +24,10 @@
   ],
   "scripts": {
     "build": "npm run build:web && npm run build:server",
-    "build:web": "npm run build -w @automicvault/web",
+    "build:web": "npm run build -w @muster-office/web",
     "build:server": "node scripts/build-server.mjs",
-    "start": "npm run build && node bin/automicvault.mjs",
-    "demo": "npm run build && node bin/automicvault.mjs --demo",
+    "start": "npm run build && node bin/muster-office.mjs",
+    "demo": "npm run build && node bin/muster-office.mjs --demo",
     "dev": "node scripts/dev.mjs",
     "typecheck": "tsc -b packages/shared packages/server packages/web e2e",
     "lint": "eslint .",
