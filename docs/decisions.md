@@ -32,7 +32,7 @@ original brief is marked **(deviation)**.
    (in `try/catch`).
 8. **Owner "titles" are the first line of `text`.** There is no title field in
    `dev.muster.note.post`; the office splits exactly where Muster's own renderer does.
-9. **Job → project is inferred** (cwd inside the project dir, else `repo` equals the slug or the
+9. **Job â†’ project is inferred** (cwd inside the project dir, else `repo` equals the slug or the
    directory name). Jobs are host-wide, so the machine room is drawn on every floor and highlights
    the jobs that belong to that project.
 10. **Dead desk is approximated from the catalog.** Muster derives its skull from the live intercom
@@ -84,7 +84,7 @@ original brief is marked **(deviation)**.
     signature always see fresh data. A test caught the stale-lane bug this guards against.
 26. **Bays are 9 tiles tall and the lobby 10**, so name plates always have headroom above heads and
     never collide with lane signs or the wall captions.
-27. **Backlog is sped up, not just queued.** With several transitions in flight, walkers move up to 3×
+27. **Backlog is sped up, not just queued.** With several transitions in flight, walkers move up to 3Ã—
     faster; more than about 30 s of queued movement fast-forwards to the end state. Snapshots (first
     load, reconnect, project switch) and reduced motion place everyone directly.
 28. **The data path was measured, not assumed.** A unit benchmark pushes 600+ events/min through the
@@ -150,12 +150,12 @@ original brief is marked **(deviation)**.
 44. **The chrome is shadcn/ui, added with its own CLI.** Button, Badge, Tabs, Toggle Group, Switch, Dropdown
     Menu, Popover, Command (cmdk), Dialog, Select, Scroll Area, Table, Collapsible, Separator, Kbd, Tooltip
     and Sonner are the generated components under `packages/web/src/components/ui/`, themed with the zinc
-    tokens (`--background`, `--card`, `--border`, `--muted`, `--primary`…) in `styles.css`. The brief asked
+    tokens (`--background`, `--card`, `--border`, `--muted`, `--primary`â€¦) in `styles.css`. The brief asked
     for minimal dependencies; this is the one deliberate exception, asked for by the user: Tailwind v4,
     `radix-ui`, `cmdk`, `sonner`, `lucide-react`, `class-variance-authority`, `clsx` and `tailwind-merge`.
     None of it runs on the server, and the server's CSP did not need to change.
 45. **No emoji, anywhere.** State, desk-kind, timeline-kind and navigation glyphs are Lucide icons
-    (`lib/meta.ts`). Muster's own agent labels start with an emoji ("<emoji> Callsign · role"), so display
+    (`lib/meta.ts`). Muster's own agent labels start with an emoji ("<emoji> Callsign Â· role"), so display
     code passes them through `plainLabel()`. The two server-built strings that carried symbols (the desk
     timeline lines) were changed to plain words. Muster's exact flow line keeps its warning sign in the data;
     the Board shows it as an icon.
@@ -188,9 +188,9 @@ original brief is marked **(deviation)**.
     margin carries the live feed (and the desk's open items, or in full screen the crew list). The feed
     and inbox show titles and ages only, so bodies still wait for "show bodies". The timeline now starts
     collapsed in windows under 1000 px tall so the floor gets the height.
-52. **Outbound links are anchors, configured at build time.** GitHub and X sit left of *Jump to…* as icon
+52. **Outbound links are anchors, configured at build time.** GitHub and X sit left of *Jump toâ€¦* as icon
     links (`target=_blank`, `rel=noopener noreferrer`) with tooltips. No account names are assumed: GitHub
-    defaults to the pi-muster repo and X to a pre-filled "share" post; `VITE_GITHUB_URL` and `VITE_X_URL`
+    defaults to this repository and X to a pre-filled "share" post; `VITE_GITHUB_URL` and `VITE_X_URL`
     replace them. Nothing is fetched from either site, so the CSP and the "no outbound requests" property
     are unchanged. The brand marks are inline SVG because Lucide no longer ships them.
 53. **Alerts stay out of the way.** Toasts sit below the vital signs (or at the very top in full screen),
@@ -202,3 +202,4 @@ original brief is marked **(deviation)**.
     (`aria-controls`), a modal menu hiding focusable elements, and light-theme status colours below the
     contrast ratio. Fading alerts are excluded because axe would measure them mid-fade. Automated checks
     find only part of the problems; this is a floor, not a certificate.
+
