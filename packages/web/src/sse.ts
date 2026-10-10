@@ -12,6 +12,15 @@ const MAX_BACKOFF_MS = 10_000;
  */
 export function connectEvents(url = "/events"): () => void {
   const store = useOffice;
+  // The public Pages preview is an intentionally static, read-only demo. Real Muster Office
+  // still connects only to its loopback server, so no live local data is exposed on the web.
+  if (typeof window !== "undefined" && !["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname)) {
+    void fetch("/demo-snapshot.json")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("demo snapshot unavailable"))))
+      .then((snapshot: Snapshot) => store.getState().applySnapshot(snapshot))
+      .catch(() => store.getState().setConn("offline"));
+    return () => undefined;
+  }
   let es: EventSource | null = null;
   let lastSeq = -1;
   let pending: Diff[] = [];
