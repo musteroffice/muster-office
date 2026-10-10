@@ -7,16 +7,16 @@ import type { DataSource } from "./sink.js";
 
 declare const __VERSION__: string | undefined;
 
-const HELP = `muster-office — a read-only, localhost, live pixel-art office for pi-muster
+const HELP = `automicvault — a read-only, localhost, live pixel-art office for pi-muster
 
-Usage: muster-office [options]
+Usage: automicvault [options]
 
   --demo              Run a deterministic synthetic simulator instead of reading Muster files
-  --port <n>          Port to listen on (default 4747; 0 = any free port). Env: MUSTER_OFFICE_PORT
+  --port <n>          Port to listen on (default 4747; 0 = any free port). Env: AUTOMICVAULT_PORT
   --home <dir>        Home directory that holds .local/state/muster (default: $HOME).
-                      Env: MUSTER_OFFICE_HOME
+                      Env: AUTOMICVAULT_HOME
   --poll              Poll the filesystem instead of using native watchers
-  --tick-ms <n>       Demo only: milliseconds per simulator step (default 2500). Env: MUSTER_OFFICE_DEMO_TICK_MS
+  --tick-ms <n>       Demo only: milliseconds per simulator step (default 2500). Env: AUTOMICVAULT_DEMO_TICK_MS
   -h, --help          Show this help
   -v, --version       Show the version
 
@@ -75,8 +75,8 @@ export function parseArgs(argv: readonly string[], env: NodeJS.ProcessEnv): Args
         throw new Error(`unknown option: ${arg}`);
     }
   }
-  if (a.port === null && env["MUSTER_OFFICE_PORT"] !== undefined) a.port = num(env["MUSTER_OFFICE_PORT"], "MUSTER_OFFICE_PORT");
-  if (a.tickMs === null && env["MUSTER_OFFICE_DEMO_TICK_MS"] !== undefined) a.tickMs = num(env["MUSTER_OFFICE_DEMO_TICK_MS"], "MUSTER_OFFICE_DEMO_TICK_MS");
+  if (a.port === null && env["AUTOMICVAULT_PORT"] !== undefined) a.port = num(env["AUTOMICVAULT_PORT"], "AUTOMICVAULT_PORT");
+  if (a.tickMs === null && env["AUTOMICVAULT_DEMO_TICK_MS"] !== undefined) a.tickMs = num(env["AUTOMICVAULT_DEMO_TICK_MS"], "AUTOMICVAULT_DEMO_TICK_MS");
   return a;
 }
 
@@ -93,7 +93,7 @@ async function main(): Promise<void> {
   try {
     args = parseArgs(process.argv.slice(2), process.env);
   } catch (e) {
-    console.error(`muster-office: ${(e as Error).message}\n`);
+    console.error(`automicvault: ${(e as Error).message}\n`);
     console.error(HELP);
     process.exit(2);
   }
@@ -107,7 +107,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  const home = args.home ?? process.env["MUSTER_OFFICE_HOME"] ?? process.env["HOME"] ?? homedir();
+  const home = args.home ?? process.env["AUTOMICVAULT_HOME"] ?? process.env["HOME"] ?? homedir();
   const noColor = process.env["NO_COLOR"] !== undefined && process.env["NO_COLOR"] !== "";
   const webRoot = findWebRoot();
 
@@ -132,10 +132,10 @@ async function main(): Promise<void> {
     version,
     noColor,
     usePolling: args.poll,
-    log: (m) => console.error(`[muster-office] ${m}`),
+    log: (m) => console.error(`[automicvault] ${m}`),
   });
 
-  console.log(`Muster Office ${version}${args.demo ? " (demo mode: synthetic data)" : ""}`);
+  console.log(`Automicvault ${version}${args.demo ? " (demo mode: synthetic data)" : ""}`);
   console.log(`  listening on ${server.url}  (127.0.0.1 only, read-only)`);
   if (!args.demo) console.log(`  reading Muster state under ${home}`);
   if (webRoot === null) console.log("  warning: web app not found; run `npm run build` first (API only)");
@@ -150,7 +150,7 @@ async function main(): Promise<void> {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   void main().catch((e: unknown) => {
-    console.error(`muster-office: ${e instanceof Error ? e.message : String(e)}`);
+    console.error(`automicvault: ${e instanceof Error ? e.message : String(e)}`);
     process.exit(1);
   });
 }

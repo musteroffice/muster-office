@@ -1,5 +1,5 @@
 import { memo, useMemo } from "react";
-import type { TimelineEvent } from "@muster-office/shared";
+import type { TimelineEvent } from "@automicvault/shared";
 import { cn } from "@/lib/utils";
 import { clock } from "../lib/format";
 import { useOffice } from "../store";

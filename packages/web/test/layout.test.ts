@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { LaneView } from "@muster-office/shared";
+import type { LaneView } from "@automicvault/shared";
 import { assignSeats, isWalkable, layoutFloor, orderLanes, rectContains, FLOOR_W, TILE, type FloorLayout, type Tile } from "../src/office/layout";
 import { dirBetween, findPath } from "../src/office/path";
 

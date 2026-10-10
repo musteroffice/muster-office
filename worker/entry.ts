@@ -190,7 +190,7 @@ export default {
       return new Response(
         JSON.stringify({
           ok: true,
-          name: "muster-office",
+          name: "automicvault",
           version: __VERSION__,
           demo: true,
           modelReady,

@@ -58,7 +58,7 @@ function usePageStatus(): void {
       blocked += p.desk.filter((d) => d.open && d.kind === "blocked").length;
     }
     const bad = failed + blocked;
-    document.title = bad > 0 ? `(${bad}) Muster Office` : warn > 0 ? `· Muster Office` : "Muster Office";
+    document.title = bad > 0 ? `(${bad}) Automicvault` : warn > 0 ? `· Automicvault` : "Automicvault";
     const tone = bad > 0 ? "#ef4444" : warn > 0 ? "#f59e0b" : "#22c55e";
     const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='#18181b'/><rect x='2' y='3' width='12' height='8' rx='1' fill='none' stroke='#fafafa' stroke-width='1.4'/><rect x='5' y='6' width='3' height='3' fill='#fafafa'/><rect x='6' y='12' width='4' height='2' fill='#fafafa'/><circle cx='12.5' cy='3.5' r='3' fill='${tone}'/></svg>`;
     let link = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');

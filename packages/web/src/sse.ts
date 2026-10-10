@@ -1,4 +1,4 @@
-import type { Diff, Snapshot } from "@muster-office/shared";
+import type { Diff, Snapshot } from "@automicvault/shared";
 import { useOffice } from "./store";
 
 const FLUSH_MS = 50;

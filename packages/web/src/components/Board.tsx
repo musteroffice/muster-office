@@ -9,7 +9,7 @@ import {
   type AgentView,
   type LaneView,
   type ProjectView,
-} from "@muster-office/shared";
+} from "@automicvault/shared";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";

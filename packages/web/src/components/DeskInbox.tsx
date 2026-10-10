@@ -1,5 +1,5 @@
 import { CircleCheck } from "lucide-react";
-import { rankOpen } from "@muster-office/shared";
+import { rankOpen } from "@automicvault/shared";
 import { cn } from "@/lib/utils";
 import { ageOf } from "../lib/format";
 import { DESK_KIND_META } from "../lib/meta";

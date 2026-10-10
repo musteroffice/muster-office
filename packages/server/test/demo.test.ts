@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { AGENT_STATES, flowInfo, inFlight, backlog, isDeadDesk, type Snapshot } from "@muster-office/shared";
+import { AGENT_STATES, flowInfo, inFlight, backlog, isDeadDesk, type Snapshot } from "@automicvault/shared";
 import { OfficeModel } from "../src/model.js";
 import { DemoSource } from "../src/demo/source.js";
-import { LOOP } from "@muster-office/shared/demo";
+import { LOOP } from "@automicvault/shared/demo";
 
 const T0 = Date.parse("2026-10-09T12:00:00Z");
 

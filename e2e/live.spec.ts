@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { openFixtureHome } from "../scripts/fixture-home.mjs";
-import type { Snapshot } from "@muster-office/shared";
+import type { Snapshot } from "@automicvault/shared";
 
 /**
  * The real (non-demo) pipeline in a browser: the server watches a Muster-shaped home on disk,
@@ -10,13 +10,13 @@ import type { Snapshot } from "@muster-office/shared";
 const LIVE = "http://127.0.0.1:4796";
 
 test("follows real file changes within about a second", async ({ page, request }) => {
-  const home = process.env["MUSTER_OFFICE_E2E_LIVE_HOME"];
+  const home = process.env["AUTOMICVAULT_E2E_LIVE_HOME"];
   expect(home, "the live home is created by playwright.config.ts").toBeTruthy();
   const muster = openFixtureHome(home!);
 
   await page.addInitScript(() => {
-    localStorage.setItem("muster-office:view", '"board"');
-    localStorage.setItem("muster-office:timelineOpen", "true"); // the list is collapsed by default in a short window
+    localStorage.setItem("automicvault:view", '"board"');
+    localStorage.setItem("automicvault:timelineOpen", "true"); // the list is collapsed by default in a short window
   });
   await page.goto(`${LIVE}/`);
   await expect(page.getByTestId("board")).toBeVisible();

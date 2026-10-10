@@ -1,4 +1,4 @@
-import { flowInfo, type Change, type ProjectView, type Snapshot } from "@muster-office/shared";
+import { flowInfo, type Change, type ProjectView, type Snapshot } from "@automicvault/shared";
 import type { Toast } from "../store";
 
 /**

@@ -1,4 +1,4 @@
-import type { AgentStateOrUnknown } from "@muster-office/shared";
+import type { AgentStateOrUnknown } from "@automicvault/shared";
 import type { Actor, Emote } from "./actors";
 import { steadyFor } from "./actors";
 import { TILE, type Dir, type FloorLayout, type Tile } from "./layout";

@@ -10,9 +10,9 @@ import { expect, test, type Page } from "@playwright/test";
 async function open(page: Page, view: "office" | "board", theme: "dark" | "light"): Promise<void> {
   await page.addInitScript(
     ([v, t]) => {
-      localStorage.setItem("muster-office:view", JSON.stringify(v));
-      localStorage.setItem("muster-office:theme", JSON.stringify(t));
-      localStorage.setItem("muster-office:tipSeen", "true");
+      localStorage.setItem("automicvault:view", JSON.stringify(v));
+      localStorage.setItem("automicvault:theme", JSON.stringify(t));
+      localStorage.setItem("automicvault:tipSeen", "true");
     },
     [view, theme] as const,
   );

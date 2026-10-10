@@ -33,7 +33,7 @@ import {
   type SampleCache,
   type Snapshot,
   type TimelineEvent,
-} from "@muster-office/shared";
+} from "@automicvault/shared";
 import type { Sink } from "./sink.js";
 
 export interface ModelOptions {

@@ -18,10 +18,10 @@ const once = (key: string, make: () => string): string => {
   process.env[key] = value;
   return value;
 };
-const emptyHome = once("MUSTER_OFFICE_E2E_EMPTY_HOME", () => mkdtempSync(join(tmpdir(), "muster-office-empty-")));
+const emptyHome = once("AUTOMICVAULT_E2E_EMPTY_HOME", () => mkdtempSync(join(tmpdir(), "automicvault-empty-")));
 // A real-looking Muster home the live test rewrites while the (non-demo) server watches it.
-const liveHome = once("MUSTER_OFFICE_E2E_LIVE_HOME", () => {
-  const dir = mkdtempSync(join(tmpdir(), "muster-office-live-"));
+const liveHome = once("AUTOMICVAULT_E2E_LIVE_HOME", () => {
+  const dir = mkdtempSync(join(tmpdir(), "automicvault-live-"));
   makeFixtureHome(dir);
   return dir;
 });
@@ -37,25 +37,25 @@ export default defineConfig({
   // The build must exist: `npm run test:e2e` builds first.
   webServer: [
     {
-      command: `node bin/muster-office.mjs --demo --port ${DEMO_PORT} --tick-ms 300`,
+      command: `node bin/automicvault.mjs --demo --port ${DEMO_PORT} --tick-ms 300`,
       url: `http://127.0.0.1:${DEMO_PORT}/healthz`,
       reuseExistingServer: false,
       timeout: 30_000,
     },
     {
-      command: `node bin/muster-office.mjs --port ${EMPTY_PORT} --home "${emptyHome}"`,
+      command: `node bin/automicvault.mjs --port ${EMPTY_PORT} --home "${emptyHome}"`,
       url: `http://127.0.0.1:${EMPTY_PORT}/healthz`,
       reuseExistingServer: false,
       timeout: 30_000,
     },
     {
-      command: `node bin/muster-office.mjs --demo --port ${HOT_PORT} --tick-ms 70`,
+      command: `node bin/automicvault.mjs --demo --port ${HOT_PORT} --tick-ms 70`,
       url: `http://127.0.0.1:${HOT_PORT}/healthz`,
       reuseExistingServer: false,
       timeout: 30_000,
     },
     {
-      command: `node bin/muster-office.mjs --port ${LIVE_PORT} --home "${liveHome}"`,
+      command: `node bin/automicvault.mjs --port ${LIVE_PORT} --home "${liveHome}"`,
       url: `http://127.0.0.1:${LIVE_PORT}/healthz`,
       reuseExistingServer: false,
       timeout: 30_000,

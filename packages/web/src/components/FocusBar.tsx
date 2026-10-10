@@ -1,5 +1,5 @@
 import { Activity, Inbox, Minimize, PackageCheck, Users, Wifi, WifiOff } from "lucide-react";
-import { deskPiles, flowInfo, type ProjectView } from "@muster-office/shared";
+import { deskPiles, flowInfo, type ProjectView } from "@automicvault/shared";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -59,7 +59,7 @@ export function FocusBar() {
           </TabsList>
         </Tabs>
       ) : (
-        <span className="px-2 text-sm font-semibold">{project?.label ?? "Muster Office"}</span>
+        <span className="px-2 text-sm font-semibold">{project?.label ?? "Automicvault"}</span>
       )}
       {v && (
         <>

@@ -5,10 +5,10 @@ const debug = (page: Page) => page.evaluate(() => window.__office?.debug());
 async function openOffice(page: Page, path = "/"): Promise<void> {
   await page.addInitScript(() => {
     try {
-      localStorage.setItem("muster-office:view", '"office"');
-      localStorage.setItem("muster-office:rosterOpen", "true");
-      localStorage.setItem("muster-office:tipSeen", "true");
-      localStorage.setItem("muster-office:minimap", "true");
+      localStorage.setItem("automicvault:view", '"office"');
+      localStorage.setItem("automicvault:rosterOpen", "true");
+      localStorage.setItem("automicvault:tipSeen", "true");
+      localStorage.setItem("automicvault:minimap", "true");
     } catch {
       /* blocked */
     }
@@ -143,7 +143,7 @@ test.describe("the chrome around the office", () => {
 
   test("the tab title counts what needs attention", async ({ page }) => {
     await openOffice(page);
-    await expect.poll(() => page.title(), { timeout: 40_000 }).toMatch(/^(\(\d+\) )?(· )?Muster Office$/);
+    await expect.poll(() => page.title(), { timeout: 40_000 }).toMatch(/^(\(\d+\) )?(· )?Automicvault$/);
   });
 });
 
@@ -249,6 +249,6 @@ test.describe("one screen, full screen", () => {
   test("the camera button saves the floor as a PNG without a server round trip", async ({ page }) => {
     await openOffice(page);
     const [download] = await Promise.all([page.waitForEvent("download"), page.getByTestId("snapshot").click()]);
-    expect(download.suggestedFilename()).toMatch(/^muster-office-.*\.png$/);
+    expect(download.suggestedFilename()).toMatch(/^automicvault-.*\.png$/);
   });
 });

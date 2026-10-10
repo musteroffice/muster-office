@@ -1,4 +1,4 @@
-// Bundles the server (and @muster-office/shared) into one ESM file. Runtime deps stay external.
+// Bundles the server (and @automicvault/shared) into one ESM file. Runtime deps stay external.
 import { build } from "esbuild";
 import { readFileSync } from "node:fs";
 

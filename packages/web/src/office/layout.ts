@@ -1,4 +1,4 @@
-import type { LaneDelivery, LaneView } from "@muster-office/shared";
+import type { LaneDelivery, LaneView } from "@automicvault/shared";
 
 /**
  * Floor layout generator. Pure: lanes in, tile grid + objects + waypoints out.

@@ -2,7 +2,7 @@ import { appendFileSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, ren
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Snapshot } from "@muster-office/shared";
+import type { Snapshot } from "@automicvault/shared";
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const FIXTURES = join(here, "..", "..", "shared", "test", "fixtures");
@@ -24,7 +24,7 @@ export interface TestHome {
 
 /** Build a throwaway HOME laid out like a real Muster install. */
 export function makeHome(slug = "harbor-api"): TestHome {
-  const home = mkdtempSync(join(tmpdir(), "muster-office-test-"));
+  const home = mkdtempSync(join(tmpdir(), "automicvault-test-"));
   const stateDir = join(home, ".local", "state", "muster");
   const projectDir = join(home, "code", slug);
   const dataDir = join(projectDir, ".brain", "data", "muster");

@@ -8,7 +8,7 @@ import { PathDenied, SafeReader, TooLarge } from "../src/safe-fs.js";
 let dir: string;
 let reader: SafeReader;
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), "muster-office-fs-"));
+  dir = mkdtempSync(join(tmpdir(), "automicvault-fs-"));
   reader = new SafeReader();
   reader.setRoots([{ path: dir, kind: "dir" }]);
 });
@@ -104,7 +104,7 @@ describe("SafeReader", () => {
   });
 
   it("denies paths outside every root, including .. traversal", async () => {
-    const outside = mkdtempSync(join(tmpdir(), "muster-office-outside-"));
+    const outside = mkdtempSync(join(tmpdir(), "automicvault-outside-"));
     try {
       writeFileSync(join(outside, "secret.txt"), "top secret");
       await expect(reader.readText(join(outside, "secret.txt"))).rejects.toBeInstanceOf(PathDenied);
@@ -128,7 +128,7 @@ describe("SafeReader", () => {
   });
 
   it("denies a directory link (symlink/junction) that points outside the root", async () => {
-    const outside = mkdtempSync(join(tmpdir(), "muster-office-outside-"));
+    const outside = mkdtempSync(join(tmpdir(), "automicvault-outside-"));
     try {
       writeFileSync(join(outside, "secret.txt"), "top secret");
       symlinkSync(outside, join(dir, "linkdir"), "junction"); // junctions need no privilege on Windows
@@ -140,7 +140,7 @@ describe("SafeReader", () => {
   });
 
   it("denies a file symlink that points outside the root", async (ctx) => {
-    const outside = mkdtempSync(join(tmpdir(), "muster-office-outside-"));
+    const outside = mkdtempSync(join(tmpdir(), "automicvault-outside-"));
     try {
       writeFileSync(join(outside, "secret.txt"), "top secret");
       try {
@@ -156,7 +156,7 @@ describe("SafeReader", () => {
   });
 
   it("follows a symlinked root itself (a user may symlink ~/.local/state/muster)", async () => {
-    const real = mkdtempSync(join(tmpdir(), "muster-office-real-"));
+    const real = mkdtempSync(join(tmpdir(), "automicvault-real-"));
     const link = `${dir}-link`;
     try {
       writeFileSync(join(real, "a.txt"), "ok");

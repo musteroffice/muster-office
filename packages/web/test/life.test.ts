@@ -13,8 +13,8 @@ import {
   type ProjectView,
   type RawDeskItem,
   type Snapshot,
-} from "@muster-office/shared";
-import { PROJECTS, deskLines, jobDocuments, projectDocument } from "@muster-office/shared/demo";
+} from "@automicvault/shared";
+import { PROJECTS, deskLines, jobDocuments, projectDocument } from "@automicvault/shared/demo";
 import { CritterBrain, roamTiles } from "../src/office/critter";
 import { ambientFor, qrs, traceAt, weatherFor } from "../src/office/fx";
 import { isWalkable, layoutFloor } from "../src/office/layout";

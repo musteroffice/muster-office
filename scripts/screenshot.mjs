@@ -1,4 +1,4 @@
-// Takes screenshots of a running Muster Office with Playwright (read-only: it only loads the page).
+// Takes screenshots of a running Automicvault with Playwright (read-only: it only loads the page).
 //
 //   npm run demo                                   # in one terminal
 //   node scripts/screenshot.mjs --out shot.png     # in another
@@ -37,9 +37,9 @@ const page = await browser.newPage({ viewport: { width, height }, deviceScaleFac
 await page.addInitScript(
   ({ view, theme, project }) => {
     try {
-      localStorage.setItem("muster-office:view", JSON.stringify(view));
-      if (theme) localStorage.setItem("muster-office:theme", JSON.stringify(theme));
-      if (project) localStorage.setItem("muster-office:project", JSON.stringify(project));
+      localStorage.setItem("automicvault:view", JSON.stringify(view));
+      if (theme) localStorage.setItem("automicvault:theme", JSON.stringify(theme));
+      if (project) localStorage.setItem("automicvault:project", JSON.stringify(project));
     } catch {
       /* ignore */
     }
@@ -48,7 +48,7 @@ await page.addInitScript(
 );
 await page.addInitScript(() => {
   try {
-    localStorage.setItem("muster-office:tipSeen", "true");
+    localStorage.setItem("automicvault:tipSeen", "true");
   } catch {
     /* ignore */
   }

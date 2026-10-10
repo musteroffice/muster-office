@@ -38,7 +38,7 @@ export default tseslint.config(
       "no-restricted-properties": [
         "error",
         ...["writeFile", "writeFileSync", "appendFile", "appendFileSync", "createWriteStream", "mkdir", "mkdirSync", "rename", "renameSync", "unlink", "unlinkSync", "rm", "rmSync", "rmdir", "rmdirSync", "copyFile", "copyFileSync", "truncate", "truncateSync", "symlink", "symlinkSync", "chmod", "chmodSync", "utimes", "utimesSync"].map(
-          (property) => ({ property, message: "Muster Office is read-only: no filesystem writes." }),
+          (property) => ({ property, message: "Automicvault is read-only: no filesystem writes." }),
         ),
       ],
     },

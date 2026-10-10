@@ -9,7 +9,7 @@ import {
   laneDeployLevel,
   rankOpen,
   type ProjectView,
-} from "@muster-office/shared";
+} from "@automicvault/shared";
 import { useShallow } from "zustand/react/shallow";
 import { Check, Crosshair, Minus, Navigation, Skull, X } from "lucide-react";
 import { Button } from "@/components/ui/button";

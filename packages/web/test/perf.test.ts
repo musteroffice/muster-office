@@ -12,8 +12,8 @@ import {
   type ProjectView,
   type RawDeskItem,
   type Snapshot,
-} from "@muster-office/shared";
-import { LOOP, PROJECTS, deskLines, jobDocuments, projectDocument } from "@muster-office/shared/demo";
+} from "@automicvault/shared";
+import { LOOP, PROJECTS, deskLines, jobDocuments, projectDocument } from "@automicvault/shared/demo";
 import { OfficeWorld } from "../src/office/world";
 
 const T0 = Date.parse("2026-10-09T12:00:00Z");

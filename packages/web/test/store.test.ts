@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { decodeProject, diffSnapshots, type Diff, type ProjectView, type Snapshot } from "@muster-office/shared";
+import { decodeProject, diffSnapshots, type Diff, type ProjectView, type Snapshot } from "@automicvault/shared";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -81,7 +81,7 @@ describe("prefs", () => {
     const { useOffice } = await import("../src/store");
     expect(useOffice.getState().showBodies).toBe(false);
     useOffice.getState().setShowBodies(true);
-    expect(store.get("muster-office:showBodies")).toBe("true");
+    expect(store.get("automicvault:showBodies")).toBe("true");
   });
 });
 

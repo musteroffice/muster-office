@@ -1,7 +1,7 @@
 import { watch as chokidarWatch, type FSWatcher } from "chokidar";
 import { stat } from "node:fs/promises";
 import { join } from "node:path";
-import { decodeRegistry, isJobFileName, type RegistryEntry } from "@muster-office/shared";
+import { decodeRegistry, isJobFileName, type RegistryEntry } from "@automicvault/shared";
 import { SafeReader } from "./safe-fs.js";
 import type { DataSource, Sink } from "./sink.js";
 import { JsonlTailer } from "./tailer.js";

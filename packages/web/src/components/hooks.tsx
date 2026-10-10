@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { AgentStateOrUnknown } from "@muster-office/shared";
+import type { AgentStateOrUnknown } from "@automicvault/shared";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { STATE_META, type Tone } from "../lib/meta";

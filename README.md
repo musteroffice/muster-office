@@ -1,4 +1,4 @@
-# Muster Office
+# Automicvault
 
 A read-only, localhost, live dashboard for [pi-muster](https://github.com/joelhooks/pi-muster) that
 shows your agents as pixel-art characters working in an office.
@@ -16,7 +16,7 @@ If you would rather not watch cartoons, the **Board** view is the same data as p
 
 It is built to be left on a second monitor: a **vital-signs strip** (flow, crew, desk, delivery, machine, pulse),
 a **crew list** with a portrait per agent, **alerts** that take you to their cause, a **command palette**
-(`Ctrl/âŒ˜ K`), a **minimap**, and a **director mode** that flies the camera to the action by itself.
+(`Ctrl/⌘ K`), a **minimap**, and a **director mode** that flies the camera to the action by itself.
 
 The interface around the canvas is built on [shadcn/ui](https://ui.shadcn.com) (new-york style, zinc
 palette) with Tailwind v4, Radix primitives, cmdk, Sonner and [Lucide](https://lucide.dev) icons. There
@@ -40,14 +40,14 @@ loses a job and queues work at the door.
 With real Muster data:
 
 ```bash
-npm run build && node bin/muster-office.mjs        # or: npx muster-office
+npm run build && node bin/automicvault.mjs        # or: npx automicvault
 ```
 
 | Option | Meaning |
 | --- | --- |
 | `--demo` | Run the built-in simulator instead of reading files |
 | `--port <n>` | Port (default 4747; if you do not pass one and it is busy, the next free port is used; `0` = any) |
-| `--home <dir>` | Home directory that contains `.local/state/muster` (default `$HOME`; env `MUSTER_OFFICE_HOME`) |
+| `--home <dir>` | Home directory that contains `.local/state/muster` (default `$HOME`; env `AUTOMICVAULT_HOME`) |
 | `--poll` | Poll the filesystem instead of using native watchers (network drives, some containers) |
 | `--tick-ms <n>` | Demo only: milliseconds per simulator step (default 2500) |
 
@@ -66,16 +66,16 @@ command).
 | Lane `draining` | The pod is dimmed with a yellow dashed edge |
 | Lane `closed` | A greyed pod; its delivery pads still show where it ended |
 | One writer per lane | The `worker` takes the main (middle) chair; boss, judge and hawk take the side chairs; anyone else stands in the aisle |
-| Agent roles | `worker` hoodie Â· `boss` top hat and suit Â· `hawk` green visor with a feather Â· `judge` white wig and robe Â· `desk` operator headset and vest. Model and thinking level are in the name plate |
+| Agent roles | `worker` hoodie · `boss` top hat and suit · `hawk` green visor with a feather · `judge` white wig and robe · `desk` operator headset and vest. Model and thinking level are in the name plate |
 | Packet | A sheet of paper. Hover a pad, tray or agent for its short hash |
-| The desk | A front desk with four trays (packets, blocked, approval, decision). Open items rank blocked â€º approval â€º decision and pile up as sheets; **flames** grow with weight (3/2/1) and log-age, like the Switchboard flame graph. No desk agent running while items are open puts a **skull** on the counter |
-| Delivery pipeline | Per lane: landed â†’ deployed â†’ proven (or waived) as pads on a conveyor. The packet token rides the belt as the stage advances; hover for the evidence text |
-| Flow line | A scrolling LED ticker on the wall with the exact Muster line, e.g. `WIP 2/3 Â· landed, not live: lexicon-pin 40m Â· oldest in flight 2h`. When flow stalls (`âš  not flowing`) the warning light blinks |
+| The desk | A front desk with four trays (packets, blocked, approval, decision). Open items rank blocked › approval › decision and pile up as sheets; **flames** grow with weight (3/2/1) and log-age, like the Switchboard flame graph. No desk agent running while items are open puts a **skull** on the counter |
+| Delivery pipeline | Per lane: landed → deployed → proven (or waived) as pads on a conveyor. The packet token rides the belt as the stage advances; hover for the evidence text |
+| Flow line | A scrolling LED ticker on the wall with the exact Muster line, e.g. `WIP 2/3 · landed, not live: lexicon-pin 40m · oldest in flight 2h`. When flow stalls (`⚠ not flowing`) the warning light blinks |
 | WIP over the limit | The backlog queues up beside the door (one waiting character per proposed lane, in rank order) |
 | Deploy posture | A gate between the pod and its strip. Arm down = locked (0), up = jfdi (3). The plate shows the effective level; badges show the deploy rule and a WIP override |
 | `muster-heavy` jobs | Racks in a glass-walled machine room with live CPU % and RSS gauges. Hover for the (redacted) command. A lost job is a dark, cracked rack |
 
-### Lifecycle â†’ animation
+### Lifecycle → animation
 
 Driven by the real state enums (`agentMachine` in pi-muster's `src/machines.ts`). A state change in the
 data starts an animation; it never teleports.
@@ -106,7 +106,7 @@ The office is never still, but only things that mean something are tied to data:
 | Data-driven | Decoration (clearly not data) |
 | --- | --- |
 | People walk, sit, slump, ghost and spin with their lifecycle state; packets fly to the tray and down the belt | Windows show the real local sky: sun and moon on an arc, drifting clouds, twinkling stars, shooting stars, lit offices in the skyline, and rain on about one day in five |
-| **Floating labels** (`FAILED`, `+BLOCKED`, `PROVEN`, `JOB LOST`â€¦) rise from where something just happened; a proven delivery throws **confetti** | Dust in the sunbeams, steam from the mug on a staffed desk, footstep dust |
+| **Floating labels** (`FAILED`, `+BLOCKED`, `PROVEN`, `JOB LOST`…) rise from where something just happened; a proven delivery throws **confetti** | Dust in the sunbeams, steam from the mug on a staffed desk, footstep dust |
 | The wall **pulse monitor** is an ECG that spikes with every event (red for failures) and goes flat with `NO LINK` when the browser loses the server | **Biscuit the cat** wanders the lobby, grooms, naps (mostly at night), bolts when an agent fails, and can be petted. The tooltip says plainly that it is not an agent |
 | **Lighting**: at dusk the room darkens by your local time and every monitor, lamp, flame and rack LED cuts a pool of light (red when a screen errors, flickering for flames) | |
 
@@ -118,15 +118,15 @@ Under `prefers-reduced-motion` nothing floats or wanders (Biscuit sleeps), and t
 ### Controls
 
 - **One screen:** the whole floor opens scaled to fill the window, nothing to pan. When the window is wider than the floor needs, the empty margins carry the live feed and the desk's open items. **Full screen** (`Z`, or the expand button in the top bar) goes browser full screen and leaves only the office, the floors, a one-line summary and the way out; the margins then hold the crew list and the feed. `fit` brings the whole-floor view back after zooming. (The fill scale is fractional, so pixels are not all one size; zooming with `+`/`-`/the wheel goes back to whole steps and crisp pixels.)
-- **Links and sharing:** a GitHub and an X button sit left of *Jump toâ€¦*; the camera button in the corner saves what you see as a PNG, made entirely in the browser. Both links are plain anchors the viewer clicks (`target=_blank`, `rel=noopener noreferrer`); the page never fetches them. By default GitHub opens this repository and X opens a pre-filled post about Muster Office. Point them at your own accounts at build time: `VITE_GITHUB_URL=https://github.com/you/muster-office VITE_X_URL=https://x.com/you npm run build`.
+- **Links and sharing:** a GitHub and an X button sit left of *Jump to…*; the camera button in the corner saves what you see as a PNG, made entirely in the browser. Both links are plain anchors the viewer clicks (`target=_blank`, `rel=noopener noreferrer`); the page never fetches them. By default GitHub opens this repository and X opens a pre-filled post about Automicvault. Point them at your own accounts at build time: `VITE_GITHUB_URL=https://github.com/you/automicvault VITE_X_URL=https://x.com/you npm run build`.
 - **Crew list** (left): everyone on the floor with a sprite portrait, state pill, lane and model; whoever needs attention is first. Hover outlines them on the floor, click flies the camera there, double-click follows them. `[` hides it.
 - **Vital signs** (under the top bar): each card is a button that takes you to what it counts. Flow turns red when the project stalls; the desk shows a flame when something has been waiting.
 - **Alerts:** failures, silent or interrupted agents, new blocked/approval/decision items, deployed/proven deliveries, lost jobs and flow stalls raise a toast with a *Show* button. Routine progress never interrupts. The tab title and favicon show the count too. Optional **alert sounds** (off by default) are synthesised in the browser; nothing is downloaded.
-- **Command palette** (`Ctrl/âŒ˜ K` or `/`): jump to any agent, lane, floor or job, or run a view command (Board/Office, show bodies, theme, directorâ€¦). It only moves your view.
+- **Command palette** (`Ctrl/⌘ K` or `/`): jump to any agent, lane, floor or job, or run a view command (Board/Office, show bodies, theme, director…). It only moves your view.
 - **Camera:** drag to pan, wheel to zoom (whole steps only, so the pixels stay crisp), the minimap (bottom right) shows where you are and jumps on click, `fit` shows the whole floor, `follow` (`F`) keeps an agent centred, and moves between places glide.
 - **Director mode** (`D`, or *auto* in the camera box): the camera flies to alerts as they happen and, when nothing is happening, tours each lane, the desk and the machine room. It pauses while you use the mouse or keyboard. Meant for a wall display.
 - **Mouse:** click a character, desk, pod, gate, pad, rack or the door to open its panel, hover for details.
-- **Keyboard** (focus the canvas): arrows pan Â· `+`/`-` zoom Â· `0` fit Â· `N`/`P` step through agents then the desk Â· `F` follow Â· `Enter` opens the hovered item Â· `Esc` closes the panel. Global: `?` lists every shortcut, `M` minimap.
+- **Keyboard** (focus the canvas): arrows pan · `+`/`-` zoom · `0` fit · `N`/`P` step through agents then the desk · `F` follow · `Enter` opens the hovered item · `Esc` closes the panel. Global: `?` lists every shortcut, `M` minimap.
 - **Top bar:** project tabs (a dot and a count show which floors need a look), Office/Board, *show bodies*, a settings menu (day/night, alert sounds, crew list, minimap, theme: system, dark, light, **mono**), connection status (`live`, `reconnecting`, `degraded` with a list of what is wrong), and a `DEMO` badge in demo mode.
 - **Panel:** a portrait with *Locate* and *Follow*, then agent role/model/thinking, state history, last report and checks, related desk items and owner notes; lane delivery stage with evidence history and deploy level/rule/override; packets; job details.
 - **Timeline** (bottom, newest first): state changes plus relay events, filterable by project, agent and kind. Collapsed, it is a single live line.
@@ -135,7 +135,7 @@ Under `prefers-reduced-motion` nothing floats or wanders (Biscuit sleeps), and t
 
 ### Board view (accessible fallback)
 
-Everything on the canvas is reachable here as semantic tables: projects overview, lanes Ã— delivery
+Everything on the canvas is reachable here as semantic tables: projects overview, lanes × delivery
 stages (table or kanban), agents, the ranked desk, packets, jobs, relay counters, plus the same
 side panel. State changes are announced through a polite live region; the canvas itself carries a
 text summary for screen readers.
@@ -150,7 +150,7 @@ The light theme, and the same floor with no colour at all (`mono`, which is the 
 
 ## Data sources (all read-only)
 
-Resolved from `--home` / `MUSTER_OFFICE_HOME` / `$HOME`, exactly as Muster resolves its own home.
+Resolved from `--home` / `AUTOMICVAULT_HOME` / `$HOME`, exactly as Muster resolves its own home.
 Full schemas and state enums are in [docs/data-contract.md](docs/data-contract.md); the source of truth is the pi-muster repo.
 
 | File | Used for |
@@ -158,7 +158,7 @@ Full schemas and state enums are in [docs/data-contract.md](docs/data-contract.m
 | `~/.local/state/muster/projects.jsonl` | The project registry (newest line per slug wins). Project directories are *only* discovered from here |
 | `<project>/.brain/data/muster/project.json` | Project, lanes, agents, packets (decoded tolerantly; the file is replaced by atomic rename) |
 | `<project>/VISION.md` | Only its `## Deploy posture` section, to compute the effective deploy level (VISION wins over policy) |
-| `<project>/.brain/data/muster/reports/â€¦` | Packet reports, only when you ask for a body |
+| `<project>/.brain/data/muster/reports/…` | Packet reports, only when you ask for a body |
 | `~/.local/state/herdr-desk/<slug>.jsonl` | Desk queue (also shows queues for slugs that are not registered) |
 | `~/.local/state/muster/owner-queue/<session>.jsonl` | Owner notes (`dev.muster.note.post`); the title is the first line of `text` |
 | `~/.local/state/muster/jobs/<id>.json`, `samples.json` | `muster-heavy` jobs and live CPU/RSS |
@@ -198,7 +198,7 @@ It loops every 84 steps (about 3.5 minutes at the default speed) through:
 - all 13 agent states, including a restart, a failed launch that is restored, a hawk that is interrupted and restoring
 - a stalled, "not flowing" project, and one that flows
 - blocked, approval and decision items with flames of different heat, resolved over time
-- a `landed â†’ deployed â†’ proven` delivery and a waived lane, at deploy levels 0â€“3 (with a rule and an override)
+- a `landed → deployed → proven` delivery and a waived lane, at deploy levels 0–3 (with a rule and an override)
 - WIP at the limit with two lanes queued at the door, then a slot freeing
 - a lost job, finished jobs (exit 0 and 1) and running ones; a project with a **dead desk**
 
@@ -226,7 +226,7 @@ docs/             data-contract, decisions, sprites
 
 ```bash
 node scripts/fixture-home.mjs /tmp/muster-home --loop     # writes a Muster-shaped home and keeps changing it
-node bin/muster-office.mjs --home /tmp/muster-home
+node bin/automicvault.mjs --home /tmp/muster-home
 ```
 
 **Screenshots and GIFs.** `scripts/screenshot.mjs` drives the page with Playwright (read-only):

@@ -1,4 +1,4 @@
-import { deployName, laneDeployLevel, type DeployLevel, type LaneView, type ProjectView } from "@muster-office/shared";
+import { deployName, laneDeployLevel, type DeployLevel, type LaneView, type ProjectView } from "@automicvault/shared";
 import { drawText, drawTextCentered, fit, textSprite, textWidth } from "./font";
 import { PULSE, PULSE_INNER, TILE, WALL_H, rectPx, type Bay, type FloorLayout, type Rect } from "./layout";
 import { C, mix, shade } from "./palette";

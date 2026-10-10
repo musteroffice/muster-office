@@ -3,7 +3,7 @@ import http from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { Diff, Snapshot } from "@muster-office/shared";
+import type { Diff, Snapshot } from "@automicvault/shared";
 import { startServer, type RunningServer } from "../src/index.js";
 import { fixtureText, makeHome, openSse, waitFor, type TestHome } from "./helpers.js";
 
@@ -13,7 +13,7 @@ let web: string;
 
 beforeEach(() => {
   home = makeHome();
-  web = mkdtempSync(join(tmpdir(), "muster-office-web-"));
+  web = mkdtempSync(join(tmpdir(), "automicvault-web-"));
   writeFileSync(join(web, "index.html"), "<!doctype html><title>office</title>");
   mkdirSync(join(web, "assets"));
   writeFileSync(join(web, "assets", "app.js"), "console.log(1)");
@@ -99,9 +99,9 @@ describe("security", () => {
 
   it("does not serve files outside the web root", async () => {
     const s = await start();
-    writeFileSync(join(web, "..", "muster-office-leak.txt"), "LEAK");
+    writeFileSync(join(web, "..", "automicvault-leak.txt"), "LEAK");
     try {
-      for (const path of ["/../muster-office-leak.txt", "/..%2fmuster-office-leak.txt", "/%2e%2e/muster-office-leak.txt", "/assets/..%5c..%5cmuster-office-leak.txt", "/%00"]) {
+      for (const path of ["/../automicvault-leak.txt", "/..%2fautomicvault-leak.txt", "/%2e%2e/automicvault-leak.txt", "/assets/..%5c..%5cautomicvault-leak.txt", "/%00"]) {
         const r = await raw(s, { path });
         expect(r.body, path).not.toContain("LEAK");
         expect([400, 403, 404, 200]).toContain(r.status);
@@ -110,7 +110,7 @@ describe("security", () => {
       expect((await raw(s, { path: "/assets/app.js" })).body).toBe("console.log(1)");
       expect((await raw(s, { path: "/some/spa/route" })).body).toContain("<title>office</title>");
     } finally {
-      rmSync(join(web, "..", "muster-office-leak.txt"), { force: true });
+      rmSync(join(web, "..", "automicvault-leak.txt"), { force: true });
     }
   });
 });
@@ -120,7 +120,7 @@ describe("with no Muster data at all", () => {
     rmSync(home.stateDir, { recursive: true, force: true });
     const s = await start();
     const h = (await (await fetch(`${s.url}/healthz`)).json()) as Record<string, unknown>;
-    expect(h).toMatchObject({ ok: true, name: "muster-office", projects: 0, demo: false });
+    expect(h).toMatchObject({ ok: true, name: "automicvault", projects: 0, demo: false });
     const snap = (await (await fetch(`${s.url}/api/snapshot`)).json()) as Snapshot;
     expect(snap.projects).toEqual([]);
   });
