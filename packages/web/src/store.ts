@@ -10,6 +10,8 @@ import {
   type TimelineEvent,
   type TimelineKind,
 } from "@muster-office/shared";
+import { alertsFor } from "./lib/alerts";
+import type { FocusRequest } from "./lib/bus";
 import { isTheme, isViewMode, loadPref, savePref, type Theme, type ViewMode } from "./lib/prefs";
 
 export type ConnState = "connecting" | "live" | "reconnecting" | "offline";
@@ -30,6 +32,20 @@ export interface TimelineFilters {
 }
 
 export type BoardLayout = "table" | "kanban";
+
+export type ToastTone = "bad" | "warn" | "ok" | "info";
+
+/** A transient alert: something the viewer would want to look at, with a way to go there. */
+export interface Toast {
+  id: number;
+  tone: ToastTone;
+  title: string;
+  text: string;
+  at: number;
+  project: string | null;
+  focus?: FocusRequest;
+  select?: Selection;
+}
 
 /** What changed in one flush, handed to the animation engine. */
 export interface ChangeBatch {
@@ -66,7 +82,28 @@ interface OfficeStore {
   timelineOpen: boolean;
   boardLayout: BoardLayout;
   filters: TimelineFilters;
+  /** The agent the roster is pointing at (hover), highlighted on the floor. */
+  pointed: string | null;
+  /** The camera follows the selected agent. */
+  follow: boolean;
+  paletteOpen: boolean;
+  helpOpen: boolean;
+  rosterOpen: boolean;
+  minimap: boolean;
+  sound: boolean;
+  /** Director mode: the camera flies to the action by itself (for a wall display). */
+  director: boolean;
+  toasts: Toast[];
 
+  setPointed(name: string | null): void;
+  setFollow(v: boolean): void;
+  setPaletteOpen(v: boolean): void;
+  setHelpOpen(v: boolean): void;
+  setRosterOpen(v: boolean): void;
+  setMinimap(v: boolean): void;
+  setSound(v: boolean): void;
+  setDirector(v: boolean): void;
+  dismissToast(id: number): void;
   setConn(c: ConnState): void;
   touchMessage(): void;
   applySnapshot(s: Snapshot): void;
@@ -87,6 +124,7 @@ export const EMPTY = [] as never[];
 
 const TIMELINE_CAP = 500;
 let announceId = 0;
+let toastId = 0;
 
 function pickProject(projects: readonly ProjectView[], current: string | null): string | null {
   if (current && projects.some((p) => p.slug === current)) return current;
@@ -123,10 +161,38 @@ export const useOffice = create<OfficeStore>()((set, get) => ({
   showBodies: loadPref("showBodies", false),
   theme: loadPref<Theme>("theme", "system", isTheme),
   dayNight: loadPref("dayNight", true),
-  timelineOpen: loadPref("timelineOpen", true),
+  // Phones get the one-line timeline by default; the floor needs the room.
+  timelineOpen: loadPref("timelineOpen", typeof window === "undefined" || window.innerWidth > 760),
   boardLayout: loadPref<BoardLayout>("boardLayout", "table", (v): v is BoardLayout => v === "table" || v === "kanban"),
   filters: { project: "all", agent: "all", kinds: [] },
+  pointed: null,
+  follow: false,
+  paletteOpen: false,
+  helpOpen: false,
+  rosterOpen: loadPref("rosterOpen", true),
+  minimap: loadPref("minimap", true),
+  sound: loadPref("sound", false),
+  director: false,
+  toasts: [],
 
+  setPointed: (pointed) => set({ pointed }),
+  setFollow: (follow) => set({ follow }),
+  setPaletteOpen: (paletteOpen) => set({ paletteOpen, helpOpen: false }),
+  setHelpOpen: (helpOpen) => set({ helpOpen, paletteOpen: false }),
+  setRosterOpen(rosterOpen) {
+    savePref("rosterOpen", rosterOpen);
+    set({ rosterOpen });
+  },
+  setMinimap(minimap) {
+    savePref("minimap", minimap);
+    set({ minimap });
+  },
+  setSound(sound) {
+    savePref("sound", sound);
+    set({ sound });
+  },
+  setDirector: (director) => set(director ? { director, follow: false } : { director }),
+  dismissToast: (id) => set((st) => ({ toasts: st.toasts.filter((t) => t.id !== id) })),
   setConn: (conn) => set({ conn }),
   touchMessage: () => set({ lastMessageAt: Date.now() }),
 
@@ -162,14 +228,23 @@ export const useOffice = create<OfficeStore>()((set, get) => ({
       events = events.concat(d.events);
     }
     const spoken = changes.map(describe).filter((x): x is string => x !== null).slice(-3);
-    set((cur) => ({
-      snapshot: snap,
-      lastDataAt: Date.now(),
-      lastMessageAt: Date.now(),
-      timeline: mergeTimeline(cur.timeline, events, TIMELINE_CAP),
-      project: pickProject(snap.projects, cur.project),
-      announcements: spoken.length ? [...cur.announcements, ...spoken.map((text) => ({ id: ++announceId, text }))].slice(-8) : cur.announcements,
-    }));
+    const fresh = alertsFor(changes, st.snapshot, snap);
+    set((cur) => {
+      const now = Date.now();
+      const recent = cur.toasts.filter((t) => now - t.at < 12_000);
+      const added = fresh
+        .filter((a) => !recent.some((t) => t.title === a.title && t.text === a.text))
+        .map((a): Toast => ({ ...a, id: ++toastId, at: now }));
+      return {
+        snapshot: snap,
+        lastDataAt: now,
+        lastMessageAt: now,
+        timeline: mergeTimeline(cur.timeline, events, TIMELINE_CAP),
+        project: pickProject(snap.projects, cur.project),
+        announcements: spoken.length ? [...cur.announcements, ...spoken.map((text) => ({ id: ++announceId, text }))].slice(-8) : cur.announcements,
+        toasts: added.length ? [...recent, ...added].slice(-4) : cur.toasts,
+      };
+    });
     const batch: ChangeBatch = { changes, reset: false, diffs: diffs.length, at: Date.now() };
     for (const fn of changeListeners) fn(batch, snap);
   },

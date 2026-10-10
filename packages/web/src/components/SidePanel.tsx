@@ -11,7 +11,9 @@ import {
   type ProjectView,
 } from "@muster-office/shared";
 import { useShallow } from "zustand/react/shallow";
+import { requestFocus } from "../lib/bus";
 import { useOffice, type Selection } from "../store";
+import { Portrait } from "./Portrait";
 import { ageMs, ageOf, clock, fmtDuration, fmtKB } from "../lib/format";
 import { DEPLOY_LEVEL_META, DESK_KIND_META, RULE_LABEL, ROLE_META, STATE_META } from "../lib/meta";
 import { BodyBlock, StateBadge, Tag, useNow } from "./hooks";
@@ -41,6 +43,9 @@ function Facts({ rows }: { rows: Array<[string, React.ReactNode]> }) {
 function AgentPanel({ project, name, now }: { project: ProjectView; name: string; now: number }) {
   const showBodies = useOffice((s) => s.showBodies);
   const timeline = useOffice((s) => s.timeline);
+  const view = useOffice((s) => s.view);
+  const follow = useOffice((s) => s.follow);
+  const setFollow = useOffice((s) => s.setFollow);
   const agent = project.agents.find((a) => a.name === name);
   if (!agent) return <p className="muted">That agent is no longer in the catalog.</p>;
   const packets = project.packets.filter((p) => p.agent === name).reverse();
@@ -51,10 +56,27 @@ function AgentPanel({ project, name, now }: { project: ProjectView; name: string
   const m = STATE_META[agent.state];
   return (
     <>
-      <h3 className="panel-title">
-        {agent.label || agent.name} <StateBadge state={agent.state} raw={agent.rawState} />
-      </h3>
-      <p className="muted small">{m.what}</p>
+      <div className="agent-head">
+        <span className={`agent-pic t-${m.tone}`}>
+          <Portrait name={agent.name} role={agent.role} state={agent.state} scale={4} />
+        </span>
+        <div className="agent-head-text">
+          <h3 className="panel-title">
+            {agent.label || agent.name} <StateBadge state={agent.state} raw={agent.rawState} />
+          </h3>
+          <p className="muted small">{m.what}</p>
+          {view === "office" && (
+            <div className="actions">
+              <button type="button" className="btn" onClick={() => requestFocus({ type: "agent", name })}>
+                Locate
+              </button>
+              <button type="button" className={`btn${follow ? " on" : ""}`} aria-pressed={follow} onClick={() => setFollow(!follow)} title="Keep the camera on this agent (F)">
+                Follow
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
       <Facts
         rows={[
           ["Role", `${ROLE_META[agent.role].label}${agent.sideOf ? ` (side desk of ${agent.sideOf})` : ""}`],

@@ -1,5 +1,7 @@
 import { heatTier, jobIsStale, type JobView } from "@muster-office/shared";
 import { nametag, steadyFor, type Actor } from "./actors";
+import { catSprite } from "./critter";
+import { LightingPass, PULSE, PULSE_INNER, ambientFor, drawMotes, drawWindows, traceAt, weatherFor, type LightSpot } from "./fx";
 import { drawText, drawTextCentered, fit, textSprite, textWidth } from "./font";
 import { rectPx, type Bay } from "./layout";
 import { C } from "./palette";
@@ -14,6 +16,10 @@ export interface RenderOpts {
   selected: Target | null;
   hover: Target | null;
   now: number;
+  /** The browser is connected to the server (drives the pulse monitor). */
+  live?: boolean;
+  /** An agent the roster is pointing at. */
+  pointed?: Target | null;
 }
 
 interface Drawable {
@@ -32,8 +38,26 @@ export class SceneRenderer {
   private sig = "";
   private sigRev = -1;
   private sigHour = -1;
+  private readonly lighting = new LightingPass();
+  private lights: LightSpot[] = [];
   /** Frames drawn, for tests and perf readouts. */
   frames = 0;
+  /** Smoothed milliseconds per render section, for the perf readout. */
+  readonly profile: Record<string, number> = {};
+  private mark(name: string, t0: number): number {
+    const t = performance.now();
+    this.profile[name] = (this.profile[name] ?? 0) * 0.95 + (t - t0) * 0.05;
+    return t;
+  }
+
+  /** The static floor, for the minimap. */
+  get floor(): HTMLCanvasElement | null {
+    return this.stat?.back ?? null;
+  }
+
+  private light(x: number, y: number, r: number, color: string, power: number, glow: number): void {
+    if (this.lights.length < 90) this.lights.push({ x, y, r, color, power, glow });
+  }
 
   constructor(private readonly world: OfficeWorld) {}
 
@@ -62,12 +86,22 @@ export class SceneRenderer {
     const stat = this.ensureStatic();
     if (!stat || !w.project) return;
     this.frames++;
+    this.lights.length = 0;
     g.imageSmoothingEnabled = false;
+    let t = performance.now();
     g.drawImage(stat.back, 0, 0);
+    t = this.mark("back", t);
 
+    const weather = weatherFor(o.now);
+    drawWindows(g, w.layout, w.hour, w.time, weather, w.reduced);
+    drawMotes(g, w.layout, w.hour, w.time, weather);
+    t = this.mark("windows", t);
     this.drawBelts(g, w.time);
     this.drawTickerAndLight(g, w.time);
+    t = this.mark("belts+ticker", t);
+    this.drawPulse(g, o.live !== false);
     this.drawTokens(g);
+    t = this.mark("pulse", t);
 
     const list: Drawable[] = [];
     let n = 0;
@@ -79,28 +113,136 @@ export class SceneRenderer {
       if (!a.visible || a.alpha <= 0.01) continue;
       list.push({ y: a.y + (a.sitting ? 0 : 0.5), order: a.order + 1000, draw: (gg) => this.drawActor(gg, a) });
     }
+    const cat = w.critter;
+    if (cat) list.push({ y: cat.y, order: 900, draw: (gg) => this.drawCat(gg) });
     list.sort((p, q) => p.y - q.y || p.order - q.order);
     for (const d of list) d.draw(g);
+    t = this.mark("furniture+actors", t);
 
     this.drawDim(g);
     this.drawSkull(g);
     this.drawFlights(g);
     this.drawParticles(g);
     this.drawFlares(g);
-    for (const a of [...w.actors.values(), ...w.visitors]) if (a.visible && a.alpha > 0.05) this.drawEmoteAndTag(g, a, o);
+    t = this.mark("effects", t);
 
-    if (o.dayNight) this.drawTint(g, stat);
-    for (const t of [o.hover, o.selected]) {
-      if (!t) continue;
-      const box = w.boxOf(t);
+    // Light: the room goes dark by the local hour, then every lamp, screen, flame and LED cuts a hole in it.
+    this.collectSceneLights(stat, weather);
+    t = this.mark("lights-collect", t);
+    this.lighting.render(g, stat.w, stat.h, ambientFor(w.hour), o.dayNight, this.lights);
+    t = this.mark("lighting", t);
+
+    // Labels sit above the lighting so they stay readable at night.
+    for (const a of [...w.actors.values(), ...w.visitors]) if (a.visible && a.alpha > 0.05) this.drawEmoteAndTag(g, a, o);
+    this.drawPopups(g);
+    this.mark("labels", t);
+    for (const tg of [o.hover, o.selected, o.pointed ?? null]) {
+      if (!tg) continue;
+      const box = w.boxOf(tg);
       if (!box) continue;
-      const sel = t === o.selected;
-      g.strokeStyle = sel ? C.gold : "#ffffffcc";
+      const sel = tg === o.selected;
+      g.strokeStyle = sel ? C.gold : tg === o.pointed ? "#7ff0d8" : "#ffffffcc";
       g.lineWidth = 1;
       if (!sel) g.setLineDash([2, 2]);
       g.strokeRect(Math.round(box.x) - 0.5, Math.round(box.y) - 0.5, Math.round(box.w) + 1, Math.round(box.h) + 1);
       g.setLineDash([]);
     }
+  }
+
+  /** Lights that do not belong to a single piece of furniture. Desks, flames and racks add their own as they draw. */
+  private collectSceneLights(stat: StaticScene, weather: string): void {
+    const w = this.world;
+    const L = w.layout;
+    const night = ambientFor(w.hour).a > 0.05;
+    for (const win of L.wall.windows) {
+      const p = rectPx(win);
+      this.light(p.x + p.w / 2, p.y + 52, 78, night ? "#7a9cff" : weather === "rain" ? "#9aa8c8" : "#fff2c0", night ? 0.55 : 0, night ? 0.1 : 0.1);
+    }
+    const sign = rectPx(L.wall.sign);
+    this.light(sign.x + sign.w / 2, sign.y + 20, 90, "#ffd878", 0.5, 0.08);
+    this.light(PULSE.x + PULSE.w / 2, PULSE.y + 20, 26, "#6dff9a", 0.4, 0.1);
+    const d = rectPx(L.door.rect);
+    this.light(d.x + d.w / 2, d.y - 6, 36, "#f2c84b", 0.6, 0.14);
+    const room = rectPx(L.machine.room);
+    this.light(room.x + room.w / 2, room.y + room.h / 2, 90, "#7fd8ff", 0.45, 0.05);
+    const front = rectPx(L.front.counter);
+    this.light(front.x + front.w / 2, front.y + 6, 80, "#ffd878", 0.5, 0.06);
+    const f = w.flow;
+    if (f?.notFlowing) {
+      const t = w.time;
+      const on = w.reduced || Math.floor(t / 450) % 2 === 0;
+      if (on) this.light(L.wall.light.x, L.wall.light.y, 44, "#ff5a5a", 0.5, 0.35);
+    }
+    void stat;
+  }
+
+  private drawPulse(g: CanvasRenderingContext2D, live: boolean): void {
+    const w = this.world;
+    const I = PULSE_INNER;
+    g.save();
+    g.beginPath();
+    g.rect(I.x, I.y, I.w, I.h);
+    g.clip();
+    const base = I.y + Math.round(I.h * 0.68);
+    const amp = I.h * 0.62;
+    if (!live) {
+      g.fillStyle = "#ff6b6b";
+      for (let x = 0; x < I.w; x += 4) g.fillRect(I.x + x, base, 2, 1);
+    } else {
+      let prev = base;
+      for (let i = 0; i < I.w; i++) {
+        const age = (I.w - 1 - i) / 18;
+        const { v, bad } = traceAt(w.pulse, w.time, age);
+        const y = Math.round(base - v * amp);
+        g.fillStyle = bad > 0.12 ? "#ff6b6b" : "#6dff9a";
+        g.globalAlpha = 0.45 + 0.55 * (i / I.w);
+        const y0 = Math.min(prev, y);
+        g.fillRect(I.x + i, y0, 1, Math.abs(prev - y) + 1);
+        prev = y;
+      }
+      g.globalAlpha = 1;
+      g.fillStyle = "#e8fff0";
+      g.fillRect(I.x + I.w - 1, prev, 1, 1);
+    }
+    g.restore();
+    const blink = w.reduced || Math.floor(w.time / 700) % 2 === 0;
+    g.fillStyle = live ? (blink ? "#6dff9a" : "#2f6a47") : "#ff5a5a";
+    g.fillRect(PULSE.x + PULSE.w - 8, PULSE.y + 3, 3, 3);
+    if (!live) drawText(g, "NO LINK", PULSE.x + 28, PULSE.y + 2, "#ff8a8a");
+  }
+
+  private drawCat(g: CanvasRenderingContext2D): void {
+    const w = this.world;
+    const c = w.critter;
+    if (!c) return;
+    const spr = catSprite(c.mode, c.dir, w.time, c.phase);
+    const hop = c.mode === "startle" ? -Math.round(Math.sin(Math.min(1, c.t / 450) * Math.PI) * 6) : 0;
+    g.fillStyle = "#00000030";
+    g.fillRect(Math.round(c.x) - 5, Math.round(c.y) - 1, 10, 2);
+    g.drawImage(spr, Math.round(c.x - spr.width / 2), Math.round(c.y - spr.height + 2 + hop));
+    const top = Math.round(c.y - spr.height + hop);
+    if (c.mode === "sleep" && !w.reduced) {
+      const k = Math.floor(w.time / 700) % 3;
+      for (let i = 0; i <= k; i++) drawText(g, "Z", Math.round(c.x) + 4 + i * 3, top - 1 - i * 3, "#b8c4ff", C.ink);
+    } else if (c.mode === "startle") {
+      drawText(g, "!", Math.round(c.x) + 4, top - 7, C.red, C.ink);
+    }
+  }
+
+  private drawPopups(g: CanvasRenderingContext2D): void {
+    for (const p of this.world.popups) {
+      const k = p.t / p.life;
+      g.globalAlpha = k < 0.12 ? k / 0.12 : k > 0.7 ? Math.max(0, (1 - k) / 0.3) : 1;
+      const tw = textWidth(p.text);
+      const x = Math.round(p.x - tw / 2);
+      const y = Math.round(p.y - k * 14);
+      g.fillStyle = "#0e0b18d0";
+      g.fillRect(x - 2, y - 2, tw + 4, 9);
+      g.fillStyle = p.color;
+      g.fillRect(x - 2, y + 6, tw + 4, 1);
+      drawText(g, p.text, x, y, p.color);
+    }
+    g.globalAlpha = 1;
   }
 
   /* --------------------------------------------------------------- floor-level */
@@ -255,7 +397,12 @@ export class SceneRenderer {
     if (main && bay.lane.state !== "closed" && (screen === "on" || screen === "dim")) {
       g.fillStyle = "#ffe9a844";
       g.fillRect(f.x + 36, topY + 1, 9, 6);
+      this.light(f.x + 40, topY + 2, 34, "#ffd878", 0.6, 0.18);
     }
+    // The monitor throws light onto the desk and the person sitting at it.
+    if (screen === "on") this.light(cx, topY + 2, 30, "#5ff0d0", 0.55, 0.2);
+    else if (screen === "dim") this.light(cx, topY + 2, 22, "#2f7f78", 0.3, 0.1);
+    else if (screen === "error") this.light(cx, topY + 2, 32, "#ff5a5a", 0.5, w.reduced || Math.floor(t / 300) % 2 === 0 ? 0.32 : 0.12);
   }
 
   private drawTrayPile(g: CanvasRenderingContext2D, f: Furniture, kind: string): void {
@@ -298,6 +445,8 @@ export class SceneRenderer {
       g.arc(bx + 14, fy + fl.height * 0.6, 6 + tier * 3, 0, Math.PI * 2);
       g.fill();
       g.drawImage(fl, Math.round(fx), Math.round(fy));
+      const flick = w.reduced ? 1 : 0.85 + 0.15 * Math.sin(w.time / 70 + kind.length);
+      this.light(bx + 14, fy + fl.height * 0.6, 12 + tier * 8, "#ffa040", 0.75 * flick, 0.38 * flick);
     }
     if (count > 0) {
       const label = `${kind === "packets" ? "PKT" : kind === "blocked" ? "BLK" : kind === "approval" ? "APR" : "DEC"} ${count}`;
@@ -334,6 +483,7 @@ export class SceneRenderer {
       g.fillStyle = led(i);
       g.fillRect(x + 4 + i * 5, y + 3, 3, 2);
     }
+    if (!job.lost) this.light(x + 16, y + 6, failed ? 26 : 22, failed ? "#ff5a5a" : stale ? "#ffc24a" : "#6dff9a", running ? 0.35 : 0.2, failed ? 0.28 : 0.12);
     drawText(g, job.id.slice(0, 3).toUpperCase(), x + 19, y + 2, "#8a93b4");
     let l1: string;
     let l2: string;
@@ -579,6 +729,33 @@ export class SceneRenderer {
         g.globalAlpha = Math.max(0, k * 0.8);
         g.drawImage(sp.prop("smoke", p.size), Math.round(p.x), Math.round(p.y));
         g.globalAlpha = 1;
+      } else if (p.kind === "confetti") {
+        g.globalAlpha = p.life > p.max * 0.75 ? Math.max(0, (p.max - p.life) / (p.max * 0.25)) : 1;
+        g.fillStyle = p.color;
+        if (Math.floor(p.life * 9 + p.size) % 2 === 0) g.fillRect(Math.round(p.x), Math.round(p.y), 2, 1);
+        else g.fillRect(Math.round(p.x), Math.round(p.y), 1, 2);
+        g.globalAlpha = 1;
+      } else if (p.kind === "dust") {
+        g.globalAlpha = Math.max(0, (1 - k) * 0.5);
+        g.fillStyle = p.color;
+        g.fillRect(Math.round(p.x), Math.round(p.y), 1, 1);
+        g.globalAlpha = 1;
+      } else if (p.kind === "steam") {
+        g.globalAlpha = Math.sin(Math.PI * k) * 0.55;
+        g.fillStyle = "#ffffff";
+        g.fillRect(Math.round(p.x), Math.round(p.y), 1, k > 0.5 ? 2 : 1);
+        g.globalAlpha = 1;
+      } else if (p.kind === "heart") {
+        g.globalAlpha = Math.sin(Math.PI * Math.min(1, k * 1.15));
+        g.fillStyle = p.color;
+        const x = Math.round(p.x);
+        const y = Math.round(p.y);
+        g.fillRect(x + 1, y, 1, 1);
+        g.fillRect(x + 3, y, 1, 1);
+        g.fillRect(x, y + 1, 5, 1);
+        g.fillRect(x + 1, y + 2, 3, 1);
+        g.fillRect(x + 2, y + 3, 1, 1);
+        g.globalAlpha = 1;
       } else {
         g.globalAlpha = Math.max(0, Math.min(1, k * 1.4));
         g.fillStyle = p.color;
@@ -612,17 +789,6 @@ export class SceneRenderer {
     }
   }
 
-  private drawTint(g: CanvasRenderingContext2D, stat: StaticScene): void {
-    const h = this.world.hour;
-    let color: string | null = null;
-    if (h < 5.5 || h >= 21) color = "rgba(14,22,80,0.36)";
-    else if (h < 7) color = "rgba(120,90,160,0.18)";
-    else if (h >= 17.5 && h < 19.5) color = "rgba(235,130,70,0.14)";
-    else if (h >= 19.5) color = "rgba(70,50,130,0.24)";
-    if (!color) return;
-    g.fillStyle = color;
-    g.fillRect(0, 0, stat.w, stat.h);
-  }
 }
 
 function repoShort(job: JobView): string {

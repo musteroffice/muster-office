@@ -13,6 +13,8 @@ import {
   type ProjectView,
 } from "@muster-office/shared";
 import { steadyFor, type Actor, type Emote } from "./actors";
+import { CritterBrain, type Critter } from "./critter";
+import type { PulseSpike } from "./fx";
 import { FLOOR_W, TILE, layoutFloor, rectContains, rectPx, type Bay, type FloorLayout, type Rect, type Tile } from "./layout";
 import { hash } from "./palette";
 import { findPath } from "./path";
@@ -32,7 +34,8 @@ export type Target =
   | { type: "door"; project: string }
   | { type: "project"; project: string; part: "sign" | "ticker" }
   | { type: "job"; id: string }
-  | { type: "rack"; slot: number };
+  | { type: "rack"; slot: number }
+  | { type: "critter" };
 
 export interface Particle {
   x: number;
@@ -41,10 +44,27 @@ export interface Particle {
   vy: number;
   life: number;
   max: number;
-  kind: "spark" | "smoke" | "star";
+  kind: "spark" | "smoke" | "star" | "confetti" | "dust" | "steam" | "heart";
   color: string;
   size: number;
 }
+
+/** A short floating label ("FAILED", "+BLOCKED") that rises from where something just happened. */
+export interface Popup {
+  x: number;
+  y: number;
+  t: number;
+  life: number;
+  text: string;
+  color: string;
+}
+
+const POPUP_COLOR: Record<string, string> = {
+  running: "#6dff9a", verified: "#6dff9a", landed: "#6dff9a", reported: "#7ab4ff", launching: "#7ab4ff", restarted: "#7ab4ff",
+  restoring: "#7ab4ff", silent: "#ffc24a", nudged: "#ffa84a", interrupted: "#ffc24a", failed: "#ff6b6b", closed: "#b0b4c8",
+  planned: "#b0b4c8", unknown: "#b0b4c8",
+};
+const CONFETTI = ["#ff6b6b", "#ffc24a", "#6dff9a", "#7ab4ff", "#e07aa8", "#ffffff"] as const;
 
 export interface Flight {
   /** Pixel path, travelled at constant speed. */
@@ -128,6 +148,14 @@ export class OfficeWorld {
   flights: Flight[] = [];
   tokens = new Map<string, LaneToken>();
   flares: Flare[] = [];
+  popups: Popup[] = [];
+  /** Events that make the wall ECG spike, in world time. */
+  pulse: PulseSpike[] = [];
+  /** Biscuit the cat; decorative. */
+  private brain: CritterBrain | null = null;
+  private lastPopup = new Map<string, number>();
+  private dustT = 0;
+  private steamT = 0;
   piles: PileView[] = [];
   flow: FlowInfo | null = null;
   deadDesk = false;
@@ -138,6 +166,8 @@ export class OfficeWorld {
   /** Bumped whenever new data is synced; lets the renderer skip recomputing the static signature. */
   revision = 0;
   reduced: boolean;
+  /** `?hour=22` pins the time of day (screenshots, tests). */
+  hourOverride: number | null = null;
   /** Debug and test hooks. */
   log: TransitionLogEntry[] = [];
   statesSeen = new Set<string>();
@@ -168,7 +198,7 @@ export class OfficeWorld {
     this.jobs = jobs;
     this.revision++;
     this.lastNow = now;
-    this.hour = HOURS(now);
+    this.hour = this.hourOverride ?? HOURS(now);
     this.flow = flowInfo(project, now);
     this.deadDesk = isDeadDesk(project);
     if (switched) this.resetProject();
@@ -179,6 +209,11 @@ export class OfficeWorld {
       this.layoutKey = key;
       this.layout = layoutFloor({ lanes: project.lanes, rackSlots });
       this.env = { layout: this.layout, emit: (e) => this.onEvent(e) };
+      if (this.brain) this.brain.relayout(this.layout);
+    }
+    if (!this.brain) {
+      this.brain = new CritterBrain(this.layout, project.slug);
+      if (this.reduced) this.brain.settle();
     }
     // Geometry only rebuilds on structural changes, so keep every bay pointing at the current lane data.
     for (const bay of this.layout.bays) {
@@ -220,9 +255,32 @@ export class OfficeWorld {
     this.flights = [];
     this.tokens.clear();
     this.flares = [];
+    this.popups = [];
+    this.pulse = [];
+    this.lastPopup.clear();
     this.piles = [];
     this.home.clear();
     this.dropping.clear();
+    this.brain = null;
+  }
+
+  /** Biscuit, or null before the first project is synced. */
+  get critter(): Critter | null {
+    return this.brain?.critter ?? null;
+  }
+
+  /** The cat was clicked. */
+  petCritter(): void {
+    const b = this.brain;
+    if (!b) return;
+    b.pet();
+    if (!this.reduced) this.emitHeart();
+  }
+
+  private emitHeart(): void {
+    const c = this.brain?.critter;
+    if (!c) return;
+    this.particles.push({ x: c.x + (Math.random() - 0.5) * 8, y: c.y - 14, vx: (Math.random() - 0.5) * 6, vy: -16, life: 0, max: 1.1, kind: "heart", color: "#ff7aa8", size: 1 });
   }
 
   private layoutKeyFor(project: ProjectView, rackSlots: number): string {
@@ -594,12 +652,78 @@ export class OfficeWorld {
         const cx = tray.rect.x * TILE + 16;
         const cy = tray.rect.y * TILE;
         if (c.change === "added" && kind) {
-          this.flares.push({ x: cx, y: cy, t: 0, kind: "added", color: kind === "blocked" ? "#ff6b6b" : kind === "approval" ? "#ffa84a" : "#ffe17a" });
+          const color = kind === "blocked" ? "#ff6b6b" : kind === "approval" ? "#ffa84a" : "#ffe17a";
+          this.flares.push({ x: cx, y: cy, t: 0, kind: "added", color });
+          this.popup(cx, cy - 18, `+${kind.toUpperCase()}`, color);
+          this.spike(kind === "blocked" ? 1 : 0.7, kind === "blocked");
         } else if (c.change === "resolved") {
           this.flares.push({ x: cx, y: cy, t: 0, kind: "resolved", color: "#6dff9a" });
+          this.popup(cx, cy - 18, "CLEARED", "#6dff9a");
+          this.spike(0.5, false);
         }
       }
-      if (c.t === "agent" && c.project === slug && c.to === "verified") this.stampFor(c.name);
+      if (c.t === "agent" && c.project === slug) {
+        if (c.to === "verified") this.stampFor(c.name);
+        if (c.to && c.from !== c.to) {
+          const a = this.actors.get(c.name);
+          if (a) this.agentPopup(a, c.to);
+          this.spike(c.to === "failed" ? 1 : c.to === "silent" || c.to === "interrupted" ? 0.75 : 0.45, c.to === "failed");
+          if (c.to === "failed") this.brain?.startle();
+        }
+      }
+      if (c.t === "lane" && c.project === slug && c.to && c.from && c.from.delivery !== c.to.delivery) {
+        this.deliveryEffects(c.slug, c.to.delivery);
+        this.spike(0.8, false);
+      }
+      if (c.t === "job" && (c.project === slug || c.project === null) && c.to && c.from !== c.to) {
+        const slot = this.rackJobs().findIndex((j) => j.id === c.id);
+        const r = this.layout.machine.racks[slot];
+        if (r) {
+          const bad = c.to === "lost";
+          this.popup(r.rect.x * TILE + 16, r.rect.y * TILE - 6, c.to === "running" ? "JOB START" : c.to === "finished" ? "JOB DONE" : "JOB LOST", bad ? "#ff6b6b" : c.to === "running" ? "#7ab4ff" : "#6dff9a");
+        }
+        this.spike(0.35, c.to === "lost");
+      }
+    }
+  }
+
+  /** A label above an actor for a state it just entered, at most one every 0.6 s per actor. */
+  private agentPopup(a: Actor, to: AgentStateOrUnknown): void {
+    const last = this.lastPopup.get(a.key) ?? -1e9;
+    if (this.time - last < 600 || !a.visible) return;
+    this.lastPopup.set(a.key, this.time);
+    this.popup(a.x, a.y - 34, steadyFor(to).badge, POPUP_COLOR[to] ?? "#b0b4c8");
+  }
+
+  popup(x: number, y: number, text: string, color: string): void {
+    if (this.popups.length >= 14) this.popups.shift();
+    this.popups.push({ x, y, t: 0, life: 2.1, text, color });
+  }
+
+  private spike(amp: number, bad: boolean): void {
+    this.pulse.push({ t: this.time, amp, bad });
+    if (this.pulse.length > 40) this.pulse.shift();
+  }
+
+  /** Landed / deployed / proven: a flourish at the matching pad of the lane's delivery strip. */
+  private deliveryEffects(slug: string, delivery: string): void {
+    const bay = this.layout.bays.find((b) => b.lane.slug === slug);
+    if (!bay || bay.pads.length === 0) return;
+    const idx = delivery === "landed" ? 0 : delivery === "deployed" ? 1 : delivery === "proven" || delivery === "waived" ? 2 : -1;
+    if (idx < 0) return;
+    const c = bay.pads[idx]!.centre;
+    const text = delivery.toUpperCase();
+    this.popup(c.x, c.y - 24, text, delivery === "waived" ? "#b0b4c8" : "#6dff9a");
+    if (delivery === "proven") this.confetti(c.x, c.y - 10, 34);
+    else if (delivery === "deployed") this.confetti(c.x, c.y - 10, 12);
+    else this.burst(c.x, c.y - 6, 8, "#7ab4ff");
+  }
+
+  confetti(x: number, y: number, n: number): void {
+    for (let i = 0; i < n; i++) {
+      const ang = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+      const sp = 40 + Math.random() * 60;
+      this.particles.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, life: 0, max: 1.2 + Math.random() * 0.9, kind: "confetti", color: CONFETTI[i % CONFETTI.length]!, size: i % 2 });
     }
   }
 
@@ -621,7 +745,7 @@ export class OfficeWorld {
 
   step(dtMs: number, now: number): void {
     this.lastNow = now;
-    this.hour = HOURS(now);
+    this.hour = this.hourOverride ?? HOURS(now);
     this.time += dtMs;
     const dt = dtMs / 1000;
     const rt = { env: this.env };
@@ -643,6 +767,10 @@ export class OfficeWorld {
         const g = steadyFor(a.shown).ghost;
         if (g) a.alpha = this.reduced ? (g.min + g.max) / 2 : g.min + (g.max - g.min) * (0.5 + 0.5 * Math.sin(this.time / 380 + a.phase * 6.28));
       }
+    }
+    if (this.brain) {
+      if (this.reduced && !this.brain.settled) this.brain.settle();
+      else if (!this.reduced && this.brain.settled) this.brain.wake();
     }
     if (!this.reduced) this.stepFx(dt, all);
     for (const p of this.piles) p.shownHeat += (p.heat - p.shownHeat) * Math.min(1, dt * 2.2);
@@ -690,13 +818,44 @@ export class OfficeWorld {
       }
       if (a.shown === "failed" && a.visible && Math.random() < dt * 1.4) this.burst(a.x + (Math.random() - 0.5) * 8, a.y - 14, 3, "#ffb04a");
     }
+    // Footsteps raise a little dust; open desks with someone seated send up a wisp of steam from the mug.
+    this.dustT += dt;
+    this.steamT += dt;
+    if (this.dustT > 0.14) {
+      this.dustT = 0;
+      for (const a of all) {
+        if (a.visible && !a.sitting && a.script[0]?.k === "walk") {
+          this.particles.push({ x: a.x + (Math.random() - 0.5) * 4, y: a.y - 1, vx: (Math.random() - 0.5) * 6, vy: -3 - Math.random() * 3, life: 0, max: 0.4, kind: "dust", color: "#e6dcc4", size: 1 });
+        }
+      }
+    }
+    if (this.steamT > 0.9) {
+      this.steamT = 0;
+      for (const bay of this.layout.bays) {
+        if (bay.lane.state !== "open" && bay.lane.state !== "draining") continue;
+        const main = bay.desks[1]!;
+        const seated = all.some((a) => a.visible && a.sitting && a.seat && a.seat.x === main.seat.x && a.seat.y === main.seat.y);
+        if (!seated) continue;
+        this.particles.push({ x: main.rect.x * TILE + 5 + Math.random(), y: main.rect.y * TILE + 2, vx: (Math.random() - 0.5) * 3, vy: -7, life: 0, max: 1.4, kind: "steam", color: "#ffffff", size: 1 });
+      }
+    }
     for (const p of this.particles) {
       p.life += dt;
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       if (p.kind === "spark") p.vy += 60 * dt;
+      else if (p.kind === "confetti") {
+        p.vy += 90 * dt;
+        p.vx *= 1 - Math.min(1, dt * 1.6);
+        p.vy = Math.min(p.vy, 38);
+        p.x += Math.sin(p.life * 9 + p.size * 3) * 14 * dt;
+      } else if (p.kind === "steam") p.x += Math.sin(p.life * 4) * 3 * dt;
     }
-    this.particles = this.particles.filter((p) => p.life < p.max).slice(-300);
+    this.particles = this.particles.filter((p) => p.life < p.max).slice(-400);
+    for (const p of this.popups) p.t += dt;
+    this.popups = this.popups.filter((p) => p.t < p.life);
+    if (this.pulse.length > 0) this.pulse = this.pulse.filter((s) => this.time - s.t < 6000);
+    if (this.brain && this.brain.step(dt * 1000, this.hour)) this.emitHeart();
     for (const f of this.flights) {
       f.t += (dt * 1000) / f.dur;
     }
@@ -729,6 +888,8 @@ export class OfficeWorld {
         return { type: "agent", project: p.slug, name: a.name };
       }
     }
+    const cat = this.brain?.critter;
+    if (cat && wx >= cat.x - 8 && wx <= cat.x + 8 && wy >= cat.y - 13 && wy <= cat.y + 1) return { type: "critter" };
     const tx = Math.floor(wx / TILE);
     const ty = Math.floor(wy / TILE);
     const L = this.layout;
@@ -782,6 +943,10 @@ export class OfficeWorld {
       case "rack": {
         const r = L.machine.racks[t.slot];
         return r ? rectPx(r.rect) : null;
+      }
+      case "critter": {
+        const c = this.brain?.critter;
+        return c ? { x: c.x - 8, y: c.y - 13, w: 16, h: 14 } : null;
       }
     }
   }

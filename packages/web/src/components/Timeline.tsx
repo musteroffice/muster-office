@@ -5,6 +5,7 @@ import { EMPTY, useOffice } from "../store";
 import { clock } from "../lib/format";
 
 const KINDS: TimelineKind[] = ["agent", "lane", "delivery", "packet", "desk", "owner", "job", "relay", "system"];
+const GLYPH: Record<TimelineKind, string> = { agent: "☺", lane: "▤", delivery: "⇥", packet: "▥", desk: "✉", owner: "✎", job: "⚙", relay: "≋", system: "◇" };
 const RENDER_CAP = 150;
 
 export function Timeline() {
@@ -31,6 +32,7 @@ export function Timeline() {
     return out;
   }, [timeline, filters]);
 
+  const latest = rows[0];
   const toggleKind = (k: TimelineKind): void => {
     const has = filters.kinds.includes(k);
     setFilters({ kinds: has ? filters.kinds.filter((x) => x !== k) : [...filters.kinds, k] });
@@ -41,6 +43,11 @@ export function Timeline() {
       <div className="tl-head">
         <h2 id="tl-h">Timeline</h2>
         <span className="muted small">{rows.length} shown · newest first</span>
+        {!open && latest && (
+          <span className={`tl-latest sev-${latest.severity}`} key={latest.id}>
+            <time dateTime={new Date(latest.ts).toISOString()}>{clock(latest.ts)}</time> {latest.text}
+          </span>
+        )}
         <label className="select small">
           <span className="sr-only">Project filter</span>
           <select aria-label="Project filter" value={filters.project} onChange={(e) => setFilters({ project: e.target.value, agent: "all" })}>
@@ -76,10 +83,13 @@ export function Timeline() {
       </div>
       {open && (
         <ol className="tl-list" data-testid="timeline-list">
-          {rows.map((e) => (
-            <li key={e.id} className={`sev-${e.severity}`}>
+          {rows.map((e, n) => (
+            <li key={e.id} className={`sev-${e.severity}${n === 0 && e.ts > Date.now() - 2000 ? " fresh" : ""}`}>
               <time dateTime={new Date(e.ts).toISOString()}>{clock(e.ts)}</time>
-              <span className={`kind kind-${e.kind}`}>{e.kind}</span>
+              <span className={`kind kind-${e.kind}`}>
+                <span aria-hidden="true">{GLYPH[e.kind]} </span>
+                {e.kind}
+              </span>
               {e.project && <span className="muted small proj">{e.project}</span>}
               {e.agent && e.project ? (
                 <button type="button" className="linklike" onClick={() => select({ type: "agent", project: e.project!, name: e.agent! })}>

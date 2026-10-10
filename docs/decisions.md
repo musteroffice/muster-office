@@ -99,3 +99,48 @@ original brief is marked **(deviation)**.
 32. **Not verified against a live Muster install.** None was available. The contract comes from the
     source at commit `e415c70`; everything real-data-shaped is tested with fixtures that follow the
     source schemas field for field, plus corrupt, partial and drifted variants.
+
+## The "alive" upgrade
+
+33. **Atmosphere is drawn per frame, not baked.** The static back canvas keeps only the window recess;
+    sky, sun and moon, stars, clouds, rain and the skyline are drawn live (`office/fx.ts`), so they move
+    and follow the local hour without rebuilding the floor. The weather is a pure function of the local
+    calendar day (about one day in five is rainy), so a given day looks the same on every screen.
+34. **Real lighting, one cheap pass.** A floor-sized mask is filled with the room's darkness for the
+    local hour and every light (monitors, lamps, flames, rack LEDs, the warning light, windows) punches
+    a soft hole with a cached radial sprite; a second additive pass adds coloured glow. Labels are drawn
+    after it so they stay readable at night. `?hour=` pins the clock for screenshots and tests.
+35. **Decoration is labelled as decoration.** Biscuit the cat, rain, dust and steam carry no data. The
+    cat's tooltip and crew-list row say "not an agent", it never gets a name plate, it cannot be
+    selected, and it settles into a nap under reduced motion. Its movement is a deterministic function of
+    the project, and a unit test proves it only ever stands on walkable tiles (that test caught a real
+    off-by-one in the cat's tile maths).
+36. **Events are visible where they happen.** State changes, delivery stages, new desk items and job
+    changes raise short floating labels at the place concerned (throttled per agent), proven deliveries
+    throw confetti, and every change spikes the wall ECG. All of it is skipped on snapshots and under
+    reduced motion, so a reconnect never replays a party.
+37. **Alerts are quiet.** `lib/alerts.ts` turns only failures, silence, interruptions, new blocked,
+    approval and decision items, deployed and proven deliveries, lost jobs and flow-stall flips into
+    toasts (three at most per batch, de-duplicated, worst first). Routine progress never interrupts. Each
+    toast knows where to take you; jumping from the Board selects without forcing the Office view.
+38. **One bus, no coupling.** The crew list, palette, toasts and director ask the camera to move through a
+    tiny `lib/bus.ts`, so none of them import the engine. Camera moves glide (eased, shorter for short
+    hops, instant under reduced motion) and any manual pan, zoom or click cancels them and follow mode.
+39. **The opening view is readable, not tiny.** A floor opens at 2x when the window is wide enough,
+    centred on where the agents are, and is re-framed as the layout settles until the viewer moves the
+    camera. `fit` still gives the whole-floor overview. (A first version framed too early, before the
+    vital-signs row existed, and opened at 1x: the page grid now always reserves that row.)
+40. **Director mode is a view feature only.** It flies to alerts and tours lanes, the desk and the machine
+    room while idle, and backs off for 25 s after any input. Nothing it does touches data.
+41. **Performance was measured, and CSS cost real frames.** Profiling showed the data path was cheap
+    (about 1.9 ms of script per frame at ~800 events/min) but headless software compositing suffered from
+    continuous CSS animations next to the canvas. So: no `backdrop-filter` or vignette over the canvas,
+    no looping animations on healthy states, paint-free keyframes only (transform and opacity), the
+    timeline does not animate rows, and the space around the floor is painted once into a cached layer
+    and only the uncovered bands are copied each frame. The e2e floor is 40 fps (it measured 56) because
+    headless Chromium has no GPU; real browsers target 60.
+42. **Sound is opt-in and synthesised.** Off by default; turning it on creates the audio context from the
+    click (which is what lets later alerts play). No audio files, no network.
+43. **Portraits go through the sprite set.** The crew list and detail panel draw characters with the same
+    `SpriteSet` as the office, so a custom sprite sheet changes them too, and one shared timer animates
+    them all.

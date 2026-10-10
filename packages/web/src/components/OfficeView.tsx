@@ -5,6 +5,7 @@ import type { Target } from "../office/world";
 import { ageOf, fmtKB, modelShort } from "../lib/format";
 import { DEPLOY_LEVEL_META, RULE_LABEL, STATE_META } from "../lib/meta";
 import { selectProjectView, useOffice } from "../store";
+import { Director } from "./Director";
 import { useNow } from "./hooks";
 
 interface Hover {
@@ -94,19 +95,58 @@ function describe(t: Target, project: ProjectView, jobs: readonly JobView[], now
     }
     case "rack":
       return { title: "Empty rack slot", lines: [] };
+    case "critter":
+      return { title: "Biscuit, the office cat", lines: ["Decorative: not an agent, and not Muster data.", "Click to pet."] };
   }
+}
+
+/** The overview map. The engine paints into it; clicking or dragging moves the camera. */
+function Minimap({ engineRef, attach }: { engineRef: React.RefObject<OfficeEngine | null>; attach: (el: HTMLCanvasElement | null) => void }) {
+  const move = (e: React.PointerEvent<HTMLCanvasElement>): void => {
+    const eng = engineRef.current;
+    if (!eng) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const p = eng.minimapToWorld((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+    if (useOffice.getState().follow) useOffice.getState().setFollow(false);
+    eng.centerOn(p.x, p.y);
+  };
+  return (
+    <div className="minimap glass" data-testid="minimap">
+      <canvas
+        ref={attach}
+        aria-label="Minimap: click or drag to move the view"
+        role="img"
+        onPointerDown={(e) => {
+          e.currentTarget.setPointerCapture(e.pointerId);
+          move(e);
+        }}
+        onPointerMove={(e) => e.buttons === 1 && move(e)}
+      />
+    </div>
+  );
 }
 
 export function OfficeView() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<OfficeEngine | null>(null);
+  const miniRef = useRef<HTMLCanvasElement | null>(null);
   const [hover, setHover] = useState<Hover | null>(null);
   const [zoom, setZoom] = useState(2);
   const project = useOffice(selectProjectView);
   const jobs = useOffice((s) => s.snapshot?.jobs);
   const loaded = useOffice((s) => s.snapshot !== null);
   const select = useOffice((s) => s.select);
+  const minimap = useOffice((s) => s.minimap);
+  const follow = useOffice((s) => s.follow);
+  const director = useOffice((s) => s.director);
+  const setDirector = useOffice((s) => s.setDirector);
+  const selected = useOffice((s) => s.selection);
+  const setFollow = useOffice((s) => s.setFollow);
   const now = useNow();
+  const attachMini = useCallback((el: HTMLCanvasElement | null) => {
+    miniRef.current = el;
+    engineRef.current?.attachMinimap(el);
+  }, []);
 
   const hooks = useMemo(
     () => ({
@@ -123,6 +163,7 @@ export function OfficeView() {
     const engine = new OfficeEngine(canvas, hooks);
     engineRef.current = engine;
     engine.start();
+    engine.attachMinimap(miniRef.current);
     window.__office = { debug: () => engine.debug(), screenPosOf: (n) => engine.screenPosOf(n), zoom: () => engine.getZoom(), centerOn: (x, y) => engine.centerOn(x, y), focusAgent: (n) => engine.focusAgent(n) };
     return () => {
       engine.stop();
@@ -135,7 +176,7 @@ export function OfficeView() {
   useEffect(() => {
     if (loaded) {
       engineRef.current?.syncFromStore(true);
-      engineRef.current?.fit();
+      engineRef.current?.frameAction();
       engineRef.current?.wake();
     }
   }, [loaded]);
@@ -165,9 +206,23 @@ export function OfficeView() {
       <p id="office-summary" className="sr-only">
         {summary}
       </p>
-      {!loaded && <div className="office-empty muted">Waiting for the first snapshot…</div>}
+      {!loaded && (
+        <div className="office-empty boot">
+          <span className="boot-logo" aria-hidden="true" />
+          <span>Opening the office…</span>
+        </div>
+      )}
       {loaded && !project && <div className="office-empty muted">No project to show. Muster has not registered any, or the registry is empty.</div>}
-      <div className="hud" role="group" aria-label="Camera">
+      {director && <Director />}
+      <div className="hud glass" role="group" aria-label="Camera">
+        <button type="button" className={director ? "on" : ""} aria-pressed={director} onClick={() => setDirector(!director)} title="Director: the camera flies to the action by itself, for a wall display (D)">
+          auto
+        </button>
+        {selected?.type === "agent" && (
+          <button type="button" className={follow ? "on" : ""} aria-pressed={follow} onClick={() => setFollow(!follow)} title="Keep the camera on the selected agent (F)">
+            follow
+          </button>
+        )}
         <button type="button" onClick={() => nudge((e) => e.setZoom(e.getZoom() + 1))} aria-label="Zoom in">
           +
         </button>
@@ -181,7 +236,8 @@ export function OfficeView() {
           fit
         </button>
       </div>
-      <details className="legend">
+      {minimap && loaded && project && <Minimap engineRef={engineRef} attach={attachMini} />}
+      <details className="legend glass">
         <summary>legend</summary>
         <ul>
           {Object.entries(STATE_META)
@@ -195,7 +251,7 @@ export function OfficeView() {
         <p className="small muted">Flames: heat from kind weight (blocked 3, approval 2, decision 1) and log age. Skull: no live desk.</p>
       </details>
       {hover && tip && (
-        <div className="tooltip" role="tooltip" style={{ left: hover.x + 14, top: hover.y + 14 }}>
+        <div className="tooltip glass" role="tooltip" style={{ left: hover.x + 14, top: hover.y + 14 }}>
           <strong>{tip.title}</strong>
           {tip.lines.map((l, i) => (
             <div key={i}>{l}</div>

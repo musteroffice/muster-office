@@ -1,6 +1,6 @@
 import { deployName, laneDeployLevel, type DeployLevel, type LaneView, type ProjectView } from "@muster-office/shared";
 import { drawText, drawTextCentered, fit, textSprite, textWidth } from "./font";
-import { TILE, WALL_H, rectPx, type Bay, type FloorLayout, type Rect } from "./layout";
+import { PULSE, PULSE_INNER, TILE, WALL_H, rectPx, type Bay, type FloorLayout, type Rect } from "./layout";
 import { C, mix, shade } from "./palette";
 
 /**
@@ -117,33 +117,12 @@ function drawWall(g: CanvasRenderingContext2D, layout: FloorLayout, hour: number
   g.fillStyle = "rgba(0,0,0,0.18)";
   g.fillRect(0, wallH, w, 3);
 
-  const sky = skyFor(hour);
+  // The window recess only: the sky, weather and skyline are animated per frame (fx.drawWindows).
+  void hour;
   for (const win of layout.wall.windows) {
     const p = rectPx(win);
     rect(g, p.x - 2, p.y + 6, p.w + 4, p.h + 4, C.wallDark);
-    const grad = g.createLinearGradient(0, p.y + 8, 0, p.y + p.h + 8);
-    grad.addColorStop(0, sky.top);
-    grad.addColorStop(1, sky.bottom);
-    g.fillStyle = grad;
-    g.fillRect(p.x, p.y + 8, p.w, p.h);
-    // skyline
-    g.fillStyle = mix("#1a2036", sky.bottom, 0.25);
-    const heights = [10, 18, 12, 24, 14, 20, 9, 16, 22, 11];
-    for (let i = 0; i < p.w / 8; i++) g.fillRect(p.x + i * 8, p.y + 8 + p.h - heights[i % heights.length]!, 7, heights[i % heights.length]!);
-    if (sky.night > 0.5) {
-      g.fillStyle = "#fff";
-      for (const [sx, sy] of [[6, 4], [22, 9], [40, 3], [58, 12], [70, 6], [30, 18]] as const) if (sx < p.w) g.fillRect(p.x + sx, p.y + 8 + sy, 1, 1);
-      g.fillStyle = "#f3efe6";
-      g.fillRect(p.x + p.w - 18, p.y + 12, 6, 6);
-    } else {
-      g.fillStyle = "#ffffff55";
-      g.fillRect(p.x + 8, p.y + 14, 14, 3);
-      g.fillRect(p.x + 12, p.y + 12, 8, 2);
-      g.fillStyle = "#ffe9a8";
-      g.fillRect(p.x + p.w - 20, p.y + 12, 7, 7);
-    }
-    rect(g, p.x + p.w / 2 - 1, p.y + 8, 2, p.h, C.wallDark);
-    frame(g, p.x, p.y + 8, p.w, p.h, C.trim);
+    rect(g, p.x, p.y + 8, p.w, p.h, C.skyNight);
   }
 }
 
@@ -437,13 +416,15 @@ function drawWallDecor(g: CanvasRenderingContext2D, layout: FloorLayout): void {
   rect(g, cx + 9, cy + 5, 2, 6, C.ink);
   rect(g, cx + 9, cy + 9, 5, 2, C.ink);
   rect(g, cx + 9, cy + 9, 2, 2, C.red);
-  // posters
-  for (const [px, col] of [[36 * TILE, C.teal], [38 * TILE + 4, C.orange]] as const) {
-    rect(g, px, 18, 22, 28, C.ink);
-    rect(g, px + 2, 20, 18, 24, C.paper);
-    rect(g, px + 4, 23, 14, 8, col);
-    for (let i = 0; i < 3; i++) rect(g, px + 4, 34 + i * 3, 14 - (i === 2 ? 5 : 0), 1, C.grayDark);
-  }
+  // The pulse monitor: bezel, label and an empty grid; fx.drawPulse draws the trace each frame.
+  rect(g, PULSE.x, PULSE.y, PULSE.w, PULSE.h, C.ink);
+  frame(g, PULSE.x, PULSE.y, PULSE.w, PULSE.h, C.metal);
+  rect(g, PULSE.x + 1, PULSE.y + 1, PULSE.w - 2, 8, C.metalDark);
+  drawText(g, "PULSE", PULSE.x + 4, PULSE.y + 2, C.metalLight);
+  rect(g, PULSE_INNER.x, PULSE_INNER.y, PULSE_INNER.w, PULSE_INNER.h, "#07130f");
+  g.fillStyle = "#10382a";
+  for (let x = PULSE_INNER.x + 5; x < PULSE_INNER.x + PULSE_INNER.w; x += 9) g.fillRect(x, PULSE_INNER.y, 1, PULSE_INNER.h);
+  for (let y = PULSE_INNER.y + 5; y < PULSE_INNER.y + PULSE_INNER.h; y += 6) g.fillRect(PULSE_INNER.x, y, PULSE_INNER.w, 1);
   void layout;
 }
 

@@ -14,6 +14,10 @@ catch fire when decisions pile up. `muster-heavy` jobs hum away in a machine roo
 
 If you would rather not watch cartoons, the **Board** view is the same data as plain accessible tables.
 
+It is built to be left on a second monitor: a **vital-signs strip** (flow, crew, desk, delivery, machine, pulse),
+a **crew list** with a portrait per agent, **alerts** that take you to their cause, a **command palette**
+(`Ctrl/⌘ K`), a **minimap**, and a **director mode** that flies the camera to the action by itself.
+
 > **Read-only by construction.** The server binds to `127.0.0.1`, has no write endpoints, runs no
 > commands, and never opens a file for writing. See [Security model](#security-model).
 
@@ -87,17 +91,40 @@ data starts an animation; it never teleports.
 | `interrupted` / `restoring` | A translucent ghost; restoring materialises (scan line) back to solid |
 
 Also: a new desk item flares on its pile and a resolved one settles with a check mark; a
-day/night tint follows your local time (toggle it); bursts of events are queued and sped up, and a
+lighting follows your local time (toggle it); bursts of events are queued and sped up, and a
 backlog beyond ~30 s of movement fast-forwards instead of replaying.
+
+### Alive, on purpose
+
+The office is never still, but only things that mean something are tied to data:
+
+| Data-driven | Decoration (clearly not data) |
+| --- | --- |
+| People walk, sit, slump, ghost and spin with their lifecycle state; packets fly to the tray and down the belt | Windows show the real local sky: sun and moon on an arc, drifting clouds, twinkling stars, shooting stars, lit offices in the skyline, and rain on about one day in five |
+| **Floating labels** (`FAILED`, `+BLOCKED`, `PROVEN`, `JOB LOST`…) rise from where something just happened; a proven delivery throws **confetti** | Dust in the sunbeams, steam from the mug on a staffed desk, footstep dust |
+| The wall **pulse monitor** is an ECG that spikes with every event (red for failures) and goes flat with `NO LINK` when the browser loses the server | **Biscuit the cat** wanders the lobby, grooms, naps (mostly at night), bolts when an agent fails, and can be petted. The tooltip says plainly that it is not an agent |
+| **Lighting**: at dusk the room darkens by your local time and every monitor, lamp, flame and rack LED cuts a pool of light (red when a screen errors, flickering for flames) | |
+
+![The same floor at night: monitors, lamps and flames light the room, the sky is dark](docs/screenshots/office-night.png)
+
+Under `prefers-reduced-motion` nothing floats or wanders (Biscuit sleeps), and the picture is drawn only when data changes.
+`?hour=22` in the URL pins the office clock, which is handy for checking the night lighting.
 
 ### Controls
 
-- **Mouse:** drag to pan, wheel to zoom (integer zoom only, so the pixels stay crisp), click a character, desk, pod, gate, pad, rack or the door to open its panel, hover for details.
-- **Keyboard** (focus the canvas): arrows pan · `+`/`-` zoom · `0` fit · `N`/`P` step through agents then the desk · `Enter` opens the hovered item · `Esc` closes the panel.
-- **Top bar:** project tabs, Office/Board, *show bodies*, day/night, theme (system, dark, light, **mono**), connection status (`live`, `reconnecting`, `degraded` with a list of what is wrong), and a `DEMO` badge in demo mode.
-- **Panel:** agent role/model/thinking, state history, last report and checks, related desk items and owner notes; lane delivery stage with evidence history and deploy level/rule/override; packets; job details.
-- **Timeline** (bottom, newest first): state changes plus relay events, filterable by project, agent and kind.
+- **Crew list** (left): everyone on the floor with a sprite portrait, state pill, lane and model; whoever needs attention is first. Hover outlines them on the floor, click flies the camera there, double-click follows them. `[` hides it.
+- **Vital signs** (under the top bar): each card is a button that takes you to what it counts. Flow turns red when the project stalls; the desk shows a flame when something has been waiting.
+- **Alerts:** failures, silent or interrupted agents, new blocked/approval/decision items, deployed/proven deliveries, lost jobs and flow stalls raise a toast with a *Show* button. Routine progress never interrupts. The tab title and favicon show the count too. Optional **alert sounds** (off by default) are synthesised in the browser; nothing is downloaded.
+- **Command palette** (`Ctrl/⌘ K` or `/`): jump to any agent, lane, floor or job, or run a view command (Board/Office, show bodies, theme, director…). It only moves your view.
+- **Camera:** drag to pan, wheel to zoom (whole steps only, so the pixels stay crisp), the minimap (bottom right) shows where you are and jumps on click, `fit` shows the whole floor, `follow` (`F`) keeps an agent centred, and moves between places glide.
+- **Director mode** (`D`, or *auto* in the camera box): the camera flies to alerts as they happen and, when nothing is happening, tours each lane, the desk and the machine room. It pauses while you use the mouse or keyboard. Meant for a wall display.
+- **Mouse:** click a character, desk, pod, gate, pad, rack or the door to open its panel, hover for details.
+- **Keyboard** (focus the canvas): arrows pan · `+`/`-` zoom · `0` fit · `N`/`P` step through agents then the desk · `F` follow · `Enter` opens the hovered item · `Esc` closes the panel. Global: `?` lists every shortcut, `M` minimap.
+- **Top bar:** project tabs (a dot and a count show which floors need a look), Office/Board, *show bodies*, a settings menu (day/night, alert sounds, crew list, minimap, theme: system, dark, light, **mono**), connection status (`live`, `reconnecting`, `degraded` with a list of what is wrong), and a `DEMO` badge in demo mode.
+- **Panel:** a portrait with *Locate* and *Follow*, then agent role/model/thinking, state history, last report and checks, related desk items and owner notes; lane delivery stage with evidence history and deploy level/rule/override; packets; job details.
+- **Timeline** (bottom, newest first): state changes plus relay events, filterable by project, agent and kind. Collapsed, it is a single live line.
 - **Reduced motion** (`prefers-reduced-motion`): static poses, no walking or particles, drawn only when data changes; every state also has a text badge on its name plate. **Idle:** the loop freezes after ~60 s with no data and no input and wakes on either; it also pauses while the tab is hidden.
+- **Small screens:** the chrome compacts, the crew list and minimap step aside, and the timeline starts collapsed.
 
 ### Board view (accessible fallback)
 
@@ -107,6 +134,12 @@ side panel. State changes are announced through a polite live region; the canvas
 text summary for screen readers.
 
 ![The Board view](docs/screenshots/board.png)
+
+The light theme, and the same floor with no colour at all (`mono`, which is the default when the server has `NO_COLOR` set):
+
+![The light theme](docs/screenshots/office-light.png)
+
+![The mono theme](docs/screenshots/office-mono.png)
 
 ## Data sources (all read-only)
 
@@ -177,7 +210,7 @@ npm run dev          # esbuild watch + node --watch server + Vite with a proxy (
 packages/shared   types, tolerant parsers, derivations (flow line, WIP, desk heat), diff/apply protocol, demo script
 packages/server   SafeReader, JSONL tailer, model, watchers, SSE, host guard, CLI, demo source
 packages/web      React UI, Zustand store, SSE client, the office (layout, A*, sprites, world, renderer, engine)
-e2e/              Playwright smoke, live-file and perf tests
+e2e/              Playwright smoke, UI, live-file and perf tests
 scripts/          build-server, dev, screenshot, fixture-home
 docs/             data-contract, decisions, sprites
 ```
@@ -196,6 +229,7 @@ npm run demo &
 node scripts/screenshot.mjs --out docs/screenshots/office.png --zoom 2 --focus 376,230 --wait 12000
 node scripts/screenshot.mjs --view board --out docs/screenshots/board.png
 node scripts/screenshot.mjs --theme mono --out docs/screenshots/office-mono.png
+node scripts/screenshot.mjs --url "http://127.0.0.1:4747/?hour=22" --out docs/screenshots/office-night.png --wait 9000
 
 # a GIF: 60 frames, 100 ms apart, then stitch them (ffmpeg or gifski)
 node scripts/screenshot.mjs --out frames/f.png --zoom 3 --focus 170,160 --frames 60 --every 100
@@ -218,6 +252,8 @@ PNG sprite sheet without touching the engine. See [docs/sprites.md](docs/sprites
 - One floor at a time (tabs), not a stacked building. Up to 14 racks, 12 queued characters and three seats per lane (further agents stand in the aisle).
 - Report bodies are shown as text, not rendered MDsveX.
 - The bundled sprites are procedural and small by design; there is no art pack.
+- Weather, the sky, the cat, steam and dust are decoration, not data. The cat's wandering and the rain are deterministic per project and per calendar day, not random per visit.
+- The 60 fps target holds on a real GPU. Headless Chromium rasterises in software, so the performance test only asks it for 40 fps under a stream of about 800 events a minute (it measured 56 fps and under 2 ms of script per frame).
 - The server trusts the local machine (see the shared-machine note above) and has no authentication.
 
 ## License

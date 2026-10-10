@@ -19,6 +19,9 @@ export const BAY_X: readonly [number, number] = [1, 24];
 export const FIRST_BAY_Y = 6;
 export const LOBBY_H = 10;
 export const MAX_RACKS = 14;
+/** The ECG monitor on the back wall, in pixels (drawn by render-static, animated by fx). */
+export const PULSE = { x: 36 * TILE, y: 15, w: 62, h: 33 } as const;
+export const PULSE_INNER = { x: PULSE.x + 3, y: PULSE.y + 10, w: PULSE.w - 6, h: PULSE.h - 13 } as const;
 export const QUEUE_CAP = 12;
 
 export interface Tile {
