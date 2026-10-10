@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["@cloudflare/workers-types"],
+    "lib": ["ES2023"],
+    "noEmit": true,
+    "composite": false,
+    "emitDeclarationOnly": false,
+    "skipLibCheck": true
+  },
+  "include": [
+    "entry.ts",
+    "../packages/server/src/demo/source.ts",
+    "../packages/server/src/model.ts",
+    "../packages/server/src/sink.ts",
+    "../packages/shared/src/**/*.ts"
+  ]
+}

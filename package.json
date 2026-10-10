@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
+    "@cloudflare/workers-types": "^5.20261010.1",
     "@eslint/js": "^9.39.0",
     "@playwright/test": "^1.50.0",
     "@types/node": "^22.10.0",
@@ -53,5 +54,8 @@
     "@hono/node-server": "^1.19.0",
     "chokidar": "^4.0.3",
     "hono": "^4.9.0"
+  },
+  "allowScripts": {
+    "esbuild": true
   }
 }

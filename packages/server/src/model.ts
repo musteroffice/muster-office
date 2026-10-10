@@ -269,7 +269,7 @@ export class OfficeModel implements Sink {
       this.timer = null;
       this.commit();
     }, wait);
-    this.timer.unref?.();
+    (this.timer as unknown as { unref?: () => void }).unref?.();
   }
 
   private commit(): void {

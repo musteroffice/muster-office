@@ -55,7 +55,7 @@ export class DemoSource implements DataSource {
     sink.ready();
     if (this.opts.tickMs > 0) {
       this.timer = setInterval(() => this.step(), this.opts.tickMs);
-      this.timer.unref?.();
+      (this.timer as unknown as { unref?: () => void }).unref?.();
     }
   }
 
