@@ -11,10 +11,15 @@ import {
   type ProjectView,
 } from "@muster-office/shared";
 import { useShallow } from "zustand/react/shallow";
+import { Check, Crosshair, Minus, Navigation, Skull, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 import { requestFocus } from "../lib/bus";
 import { useOffice, type Selection } from "../store";
+import { FlowLine } from "./Board";
 import { Portrait } from "./Portrait";
-import { ageMs, ageOf, clock, fmtDuration, fmtKB } from "../lib/format";
+import { ageMs, ageOf, clock, fmtDuration, fmtKB, plainLabel } from "../lib/format";
 import { DEPLOY_LEVEL_META, DESK_KIND_META, RULE_LABEL, ROLE_META, STATE_META } from "../lib/meta";
 import { BodyBlock, StateBadge, Tag, useNow } from "./hooks";
 
@@ -56,23 +61,23 @@ function AgentPanel({ project, name, now }: { project: ProjectView; name: string
   const m = STATE_META[agent.state];
   return (
     <>
-      <div className="agent-head">
-        <span className={`agent-pic t-${m.tone}`}>
-          <Portrait name={agent.name} role={agent.role} state={agent.state} scale={4} />
+      <div className="flex items-start gap-3.5">
+        <span className="grid h-24 w-[4.5rem] shrink-0 place-items-center rounded-lg border bg-muted/40" data-tone={m.tone}>
+          <Portrait name={agent.name} role={agent.role} state={agent.state} scale={3} />
         </span>
-        <div className="agent-head-text">
+        <div className="min-w-0">
           <h3 className="panel-title">
-            {agent.label || agent.name} <StateBadge state={agent.state} raw={agent.rawState} />
+            {plainLabel(agent.label) || agent.name} <StateBadge state={agent.state} raw={agent.rawState} />
           </h3>
           <p className="muted small">{m.what}</p>
           {view === "office" && (
-            <div className="actions">
-              <button type="button" className="btn" onClick={() => requestFocus({ type: "agent", name })}>
-                Locate
-              </button>
-              <button type="button" className={`btn${follow ? " on" : ""}`} aria-pressed={follow} onClick={() => setFollow(!follow)} title="Keep the camera on this agent (F)">
-                Follow
-              </button>
+            <div className="mt-2 flex gap-1.5">
+              <Button type="button" size="sm" variant="outline" onClick={() => requestFocus({ type: "agent", name })}>
+                <Crosshair /> Locate
+              </Button>
+              <Button type="button" size="sm" variant={follow ? "default" : "outline"} aria-pressed={follow} onClick={() => setFollow(!follow)} title="Keep the camera on this agent (F)">
+                <Navigation /> Follow
+              </Button>
             </div>
           )}
         </div>
@@ -119,7 +124,7 @@ function AgentPanel({ project, name, now }: { project: ProjectView; name: string
           <ul className="checks">
             {last.checks.map((c, i) => (
               <li key={i} className={`check-${c.outcome}`}>
-                <span aria-hidden="true">{c.outcome === "pass" ? "✔" : c.outcome === "fail" ? "✖" : "–"}</span> {c.name} <span className="sr-only">{c.outcome}</span>
+                {c.outcome === "pass" ? <Check aria-hidden="true" className="size-3.5" /> : c.outcome === "fail" ? <X aria-hidden="true" className="size-3.5" /> : <Minus aria-hidden="true" className="size-3.5" />} {c.name} <span className="sr-only">{c.outcome}</span>
                 {c.detail && <span className="muted small"> {c.detail}</span>}
               </li>
             ))}
@@ -278,19 +283,28 @@ function DeskPanel({ project, now }: { project: ProjectView; now: number }) {
   return (
     <>
       <h3 className="panel-title">The desk · {project.label}</h3>
-      {dead && <p className="callout bad">☠ No live desk. Items are waiting and no desk agent is in a running state. (Derived from the catalog; Muster uses its live session list.)</p>}
+      {dead && (
+        <p className="callout bad">
+          <Skull aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-destructive" />
+          <span>No live desk. Items are waiting and no desk agent is in a running state. (Derived from the catalog; Muster uses its live session list.)</span>
+        </p>
+      )}
       <ul className="plain piles">
         {piles.map((p) => (
           <li key={p.kind}>
             <Tag tone={DESK_KIND_META[p.kind].tone}>
-              {DESK_KIND_META[p.kind].glyph} {p.kind}
+              {(() => {
+                const K = DESK_KIND_META[p.kind].icon;
+                return <K aria-hidden="true" className="size-3" />;
+              })()}{" "}
+              {p.kind}
             </Tag>{" "}
             {p.count} open · oldest {ageMs(p.oldestMs)} · heat {p.heat.toFixed(1)} <span className="muted small">(flame {["none", "ember", "small", "medium", "large"][p.tier]})</span>
           </li>
         ))}
         {piles.length === 0 && <li className="muted">Inbox clear.</li>}
       </ul>
-      <h4>Open items (blocked › approval › decision)</h4>
+      <h4>Open items (blocked, then approval, then decision)</h4>
       <ol className="plain items">
         {open.map((d) => (
           <li key={d.id}>
@@ -375,7 +389,7 @@ function PacketPanel({ project, id, now }: { project: ProjectView; id: string; n
       <ul className="checks">
         {k.checks.map((c, i) => (
           <li key={i} className={`check-${c.outcome}`}>
-            <span aria-hidden="true">{c.outcome === "pass" ? "✔" : c.outcome === "fail" ? "✖" : "–"}</span> {c.name} <span className="sr-only">{c.outcome}</span>
+            {c.outcome === "pass" ? <Check aria-hidden="true" className="size-3.5" /> : c.outcome === "fail" ? <X aria-hidden="true" className="size-3.5" /> : <Minus aria-hidden="true" className="size-3.5" />} {c.name} <span className="sr-only">{c.outcome}</span>
             {c.detail && <span className="muted small"> {c.detail}</span>}
           </li>
         ))}
@@ -392,9 +406,9 @@ function ProjectPanel({ project, now }: { project: ProjectView; now: number }) {
     <>
       <h3 className="panel-title">{project.label}</h3>
       <p className="muted small">{project.outcome}</p>
-      <p className={`flowline ${f.notFlowing ? "stalled" : ""}`}>
-        <span className="flow-light" aria-hidden="true" />
-        {f.line}
+      <p className={cn("my-2 flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 font-mono text-xs", f.notFlowing && "border-warning/50 text-warning")}>
+        <span className={cn("size-2 shrink-0 rounded-full", f.notFlowing ? "bg-destructive" : "bg-success")} aria-hidden="true" />
+        <FlowLine line={f.line} stalled={f.notFlowing} />
       </p>
       <Facts
         rows={[
@@ -468,27 +482,29 @@ export function SidePanel() {
   const now = useNow();
   const open = selection !== null;
   return (
-    <aside className={`side ${open ? "open" : ""}`} aria-label="Details" data-testid="side-panel" hidden={!open}>
-      <div className="side-head">
-        <span className="muted small">{selection ? selection.type : ""}</span>
-        <button type="button" className="icon-btn" onClick={() => select(null)} aria-label="Close details (Esc)">
-          ×
-        </button>
+    <aside className={cn("side flex min-h-0 w-[22.5rem] max-w-[44vw] flex-col border-l bg-card", open && "open")} aria-label="Details" data-testid="side-panel" hidden={!open}>
+      <div className="flex items-center justify-between border-b px-3 py-1.5">
+        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{selection ? selection.type : ""}</span>
+        <Button type="button" variant="ghost" size="icon-sm" onClick={() => select(null)} aria-label="Close details (Esc)">
+          <X />
+        </Button>
       </div>
-      <div className="side-body">
-        {selection?.type === "job" && <JobPanel id={selection.id} now={now} />}
-        {selection && selection.type !== "job" && !project && <p className="muted">That project is gone.</p>}
-        {selection && selection.type !== "job" && project && (
-          <>
-            {selection.type === "agent" && <AgentPanel project={project} name={selection.name} now={now} />}
-            {selection.type === "lane" && <LanePanel project={project} slug={selection.slug} now={now} />}
-            {selection.type === "desk" && <DeskPanel project={project} now={now} />}
-            {selection.type === "packet" && <PacketPanel project={project} id={selection.id} now={now} />}
-            {selection.type === "project" && <ProjectPanel project={project} now={now} />}
-            {selection.type === "door" && <DoorPanel project={project} now={now} />}
-          </>
-        )}
-      </div>
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="px-4 pb-8 pt-3">
+          {selection?.type === "job" && <JobPanel id={selection.id} now={now} />}
+          {selection && selection.type !== "job" && !project && <p className="muted">That project is gone.</p>}
+          {selection && selection.type !== "job" && project && (
+            <>
+              {selection.type === "agent" && <AgentPanel project={project} name={selection.name} now={now} />}
+              {selection.type === "lane" && <LanePanel project={project} slug={selection.slug} now={now} />}
+              {selection.type === "desk" && <DeskPanel project={project} now={now} />}
+              {selection.type === "packet" && <PacketPanel project={project} id={selection.id} now={now} />}
+              {selection.type === "project" && <ProjectPanel project={project} now={now} />}
+              {selection.type === "door" && <DoorPanel project={project} now={now} />}
+            </>
+          )}
+        </div>
+      </ScrollArea>
     </aside>
   );
 }

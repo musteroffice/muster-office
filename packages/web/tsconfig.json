@@ -6,7 +6,9 @@
     "tsBuildInfoFile": "../../.tsbuildinfo/web.tsbuildinfo",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
-    "types": ["vite/client"]
+    "types": ["vite/client", "node"],
+    "baseUrl": ".",
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src", "test", "vite.config.ts"],
   "references": [{ "path": "../shared" }]

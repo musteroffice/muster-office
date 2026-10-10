@@ -119,9 +119,9 @@ test.describe("board view (accessible fallback)", () => {
     const rows = await page.getByTestId("agent-row").count();
     expect(rows).toBeGreaterThan(0);
     // Switch layout to kanban and back.
-    await page.getByRole("button", { name: "Kanban" }).click();
+    await page.getByRole("radio", { name: "Kanban" }).click();
     await expect(page.getByTestId("kanban")).toBeVisible();
-    await page.getByRole("button", { name: "Table" }).click();
+    await page.getByRole("radio", { name: "Table" }).click();
     await expect(page.getByTestId("lane-table")).toBeVisible();
     // Details are reachable without the canvas.
     await page.getByTestId("agent-table").getByRole("button").first().click();

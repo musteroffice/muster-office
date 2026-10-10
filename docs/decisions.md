@@ -144,3 +144,29 @@ original brief is marked **(deviation)**.
 43. **Portraits go through the sprite set.** The crew list and detail panel draw characters with the same
     `SpriteSet` as the office, so a custom sprite sheet changes them too, and one shared timer animates
     them all.
+
+## shadcn/ui, icons instead of emoji
+
+44. **The chrome is shadcn/ui, added with its own CLI.** Button, Badge, Tabs, Toggle Group, Switch, Dropdown
+    Menu, Popover, Command (cmdk), Dialog, Select, Scroll Area, Table, Collapsible, Separator, Kbd, Tooltip
+    and Sonner are the generated components under `packages/web/src/components/ui/`, themed with the zinc
+    tokens (`--background`, `--card`, `--border`, `--muted`, `--primary`…) in `styles.css`. The brief asked
+    for minimal dependencies; this is the one deliberate exception, asked for by the user: Tailwind v4,
+    `radix-ui`, `cmdk`, `sonner`, `lucide-react`, `class-variance-authority`, `clsx` and `tailwind-merge`.
+    None of it runs on the server, and the server's CSP did not need to change.
+45. **No emoji, anywhere.** State, desk-kind, timeline-kind and navigation glyphs are Lucide icons
+    (`lib/meta.ts`). Muster's own agent labels start with an emoji ("<emoji> Callsign · role"), so display
+    code passes them through `plainLabel()`. The two server-built strings that carried symbols (the desk
+    timeline lines) were changed to plain words. Muster's exact flow line keeps its warning sign in the data;
+    the Board shows it as an icon.
+46. **Less decoration.** The first "alive" pass used gradients, glows, a gradient brand and a sweeping
+    light. The shadcn version is flat: one-pixel borders, the zinc scale, a single radius, and colour only
+    for status (success, warning, info, destructive). Status is never colour alone: each use also has an icon
+    and a word, and the `mono` theme adds border styles on top.
+47. **Themes map onto shadcn's `dark` class.** `data-theme` is still set (the canvas and the mono rules
+    use it), and `dark` is toggled for `dark` and `mono`. The canvas reads a plain `--canvas` colour instead
+    of the oklch tokens.
+48. **Perf guard rails carried over.** Timeline rows are memoised (the generated icons made a full list
+    re-render too costly under a stream of ~800 events a minute), the perf spec switches Playwright tracing
+    off (a screencast would otherwise be measured as frame cost), and overlays that cover the canvas never
+    use `backdrop-filter`.

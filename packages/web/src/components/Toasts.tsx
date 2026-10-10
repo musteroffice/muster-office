@@ -1,70 +1,47 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { requestFocus } from "../lib/bus";
 import { useOffice, type Toast } from "../store";
 
-const GLYPH = { bad: "✖", warn: "!", ok: "✔", info: "i" } as const;
 const TTL = 9000;
 
-function ToastCard({ toast }: { toast: Toast }) {
-  const dismiss = useOffice((s) => s.dismissToast);
-  const select = useOffice((s) => s.select);
-  const selectProject = useOffice((s) => s.selectProject);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const arm = (): void => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => dismiss(toast.id), TTL);
-  };
-  const hold = (): void => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = null;
-  };
-  useEffect(() => {
-    arm();
-    return hold;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast.id]);
-
-  const show = (): void => {
-    const st = useOffice.getState();
-    if (toast.project && toast.project !== st.project) selectProject(toast.project);
-    if (toast.select) select(toast.select);
-    if (toast.focus && st.view === "office") {
-      const f = toast.focus;
-      // The engine switches floors on the next tick; give it a moment before flying.
-      setTimeout(() => requestFocus(f), toast.project && toast.project !== st.project ? 120 : 0);
-    }
-    dismiss(toast.id);
-  };
-
-  return (
-    <li className={`toast t-${toast.tone}`} onMouseEnter={hold} onMouseLeave={arm}>
-      <span className="toast-glyph" aria-hidden="true">
-        {GLYPH[toast.tone]}
-      </span>
-      <span className="toast-body">
-        <strong>{toast.title}</strong>
-        <span>{toast.text}</span>
-      </span>
-      {(toast.focus || toast.select) && (
-        <button type="button" className="toast-act" onClick={show}>
-          Show
-        </button>
-      )}
-      <button type="button" className="toast-x" onClick={() => dismiss(toast.id)} aria-label={`Dismiss: ${toast.title}`}>
-        ×
-      </button>
-      <span className="toast-bar" style={{ animationDuration: `${TTL}ms` }} aria-hidden="true" />
-    </li>
-  );
+function show(t: Toast): void {
+  const st = useOffice.getState();
+  if (t.project && t.project !== st.project) st.selectProject(t.project);
+  if (t.select) st.select(t.select);
+  if (t.focus && st.view === "office") {
+    const f = t.focus;
+    // The engine switches floors on the next tick; give it a moment before flying.
+    setTimeout(() => requestFocus(f), t.project && t.project !== st.project ? 120 : 0);
+  }
 }
 
+/**
+ * Alerts, shown with shadcn's Sonner. The store decides what deserves one (lib/alerts.ts); this only
+ * renders them, with a button that takes you to the cause.
+ */
 export function Toasts() {
-  const toasts = useOffice((s) => s.toasts);
-  return (
-    <ol className="toasts" role="status" aria-live="polite" aria-label="Alerts" data-testid="toasts">
-      {toasts.map((t) => (
-        <ToastCard key={t.id} toast={t} />
-      ))}
-    </ol>
-  );
+  useEffect(() => {
+    let seen = useOffice.getState().toasts.at(-1)?.id ?? 0;
+    return useOffice.subscribe((s) => {
+      for (const t of s.toasts) {
+        if (t.id <= seen) continue;
+        seen = Math.max(seen, t.id);
+        const opts = {
+          id: t.id,
+          description: t.text,
+          duration: TTL,
+          onDismiss: () => useOffice.getState().dismissToast(t.id),
+          onAutoClose: () => useOffice.getState().dismissToast(t.id),
+          action: t.focus || t.select ? { label: "Show", onClick: () => show(t) } : undefined,
+        };
+        if (t.tone === "bad") toast.error(t.title, opts);
+        else if (t.tone === "warn") toast.warning(t.title, opts);
+        else if (t.tone === "ok") toast.success(t.title, opts);
+        else toast.info(t.title, opts);
+      }
+    });
+  }, []);
+  return <Toaster position="bottom-center" visibleToasts={3} offset={{ bottom: 236 }} mobileOffset={{ bottom: 72 }} toastOptions={{ classNames: { toast: "data-alert", actionButton: "!bg-primary !text-primary-foreground" } }} />;
 }

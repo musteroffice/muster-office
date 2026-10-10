@@ -9,6 +9,9 @@ const HOT = "http://127.0.0.1:4797";
 
 const debug = (page: Page) => page.evaluate(() => window.__office?.debug());
 
+// A trace recorder screencasts the page, which would be measured as part of the frame cost.
+test.use({ trace: "off" });
+
 test("stays smooth at 800+ events a minute", async ({ page, request }) => {
   test.setTimeout(60_000);
   await page.addInitScript(() => localStorage.setItem("muster-office:view", '"office"'));

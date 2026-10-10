@@ -1,4 +1,6 @@
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import { fileURLToPath } from "node:url";
 import { defineConfig, type ProxyOptions } from "vite";
 
 const target = process.env["MUSTER_OFFICE_DEV_SERVER"] ?? "http://127.0.0.1:4747";
@@ -13,7 +15,8 @@ const proxied = (): ProxyOptions => ({
 });
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
+  resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   build: { outDir: "../../dist/web", emptyOutDir: true, sourcemap: false, target: "es2022" },
   server: {
     host: "127.0.0.1",

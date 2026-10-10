@@ -32,7 +32,6 @@ function agentSeverity(state: string): Severity {
   }
 }
 
-const KIND_GLYPH: Record<string, string> = { blocked: "⛔", approval: "✅", decision: "❓", done: "🏁", fyi: "📎" };
 
 function agentEventSeverity(type: string): Severity {
   if (/fail|error|lost|gone/i.test(type)) return "error";
@@ -129,8 +128,8 @@ export function seedTimeline(snap: Snapshot): TimelineEvent[] {
         agent: null,
         lane: null,
         text: d.resolves
-          ? `desk ✓ ${d.from} resolved ${d.resolves}: ${d.title}`
-          : `desk ${KIND_GLYPH[d.kind] ?? ""} ${d.kind} from ${d.from}: ${d.title}`,
+          ? `desk ${d.from} resolved ${d.resolves}: ${d.title}`
+          : `desk ${d.kind} from ${d.from}: ${d.title}`,
         severity: d.kind === "blocked" && d.open ? "error" : d.open ? "warn" : "info",
       });
     }
@@ -298,10 +297,10 @@ function projectEvents(old: ProjectView, p: ProjectView, now: number, out: Timel
     const o = oldDesk.get(d.id);
     if (!o) {
       out.push(mk(`dk:${slug}:${d.id}`, ms(d.ts, now), "desk", slug, null, null,
-        d.resolves ? `desk ✓ ${d.from} resolved ${d.resolves}: ${d.title}` : `desk ${KIND_GLYPH[d.kind] ?? ""} ${d.kind} from ${d.from}: ${d.title}`,
+        d.resolves ? `desk ${d.from} resolved ${d.resolves}: ${d.title}` : `desk ${d.kind} from ${d.from}: ${d.title}`,
         d.kind === "blocked" && d.open ? "error" : d.open ? "warn" : "info"));
     } else if (o.open && !d.open) {
-      out.push(mk(`dkr:${slug}:${d.id}:${d.resolvedBy ?? ""}`, now, "desk", slug, null, null, `desk ✓ resolved ${d.kind}: ${d.title}`, "ok"));
+      out.push(mk(`dkr:${slug}:${d.id}:${d.resolvedBy ?? ""}`, now, "desk", slug, null, null, `desk resolved ${d.kind}: ${d.title}`, "ok"));
     }
   }
 

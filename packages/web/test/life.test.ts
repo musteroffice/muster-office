@@ -15,7 +15,6 @@ import {
   type Snapshot,
 } from "@muster-office/shared";
 import { PROJECTS, deskLines, jobDocuments, projectDocument } from "@muster-office/shared/demo";
-import { fuzzy } from "../src/components/CommandPalette";
 import { CritterBrain, roamTiles } from "../src/office/critter";
 import { ambientFor, qrs, traceAt, weatherFor } from "../src/office/fx";
 import { isWalkable, layoutFloor } from "../src/office/layout";
@@ -223,15 +222,5 @@ describe("alerts", () => {
     expect(out).toHaveLength(3);
     expect(out[0]!.tone).toBe("bad");
     expect(out.map((a) => a.title)).not.toContain("Proven live"); // cut by the cap
-  });
-});
-
-describe("command palette search", () => {
-  it("matches subsequences, prefers prefixes, and rejects non-matches", () => {
-    expect(fuzzy("ada", "Ada — running")).not.toBeNull();
-    expect(fuzzy("zzz", "Ada — running")).toBeNull();
-    expect(fuzzy("", "anything")).toBe(0);
-    expect(fuzzy("bil", "Billing sync")!).toBeGreaterThan(fuzzy("bil", "the big old lane")!);
-    expect(fuzzy("auth lane", "auth-rework lane")).not.toBeNull();
   });
 });

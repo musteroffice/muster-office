@@ -1,9 +1,10 @@
 import { useEffect } from "react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { BoardView } from "./components/Board";
 import { CommandPalette } from "./components/CommandPalette";
 import { Help } from "./components/Help";
 import { OfficeView } from "./components/OfficeView";
-import { Roster } from "./components/Roster";
+import { Roster, RosterTab } from "./components/Roster";
 import { SidePanel } from "./components/SidePanel";
 import { SpriteSheet } from "./components/SpriteSheet";
 import { Timeline } from "./components/Timeline";
@@ -27,7 +28,12 @@ function useTheme(): void {
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: light)");
     const apply = (): void => {
-      document.documentElement.dataset["theme"] = theme === "system" ? (mq.matches ? "light" : "dark") : theme;
+      const resolved = theme === "system" ? (mq.matches ? "light" : "dark") : theme;
+      const root = document.documentElement;
+      root.dataset["theme"] = resolved;
+      // shadcn keys its dark tokens on the `dark` class; mono is a dark theme with the hue removed.
+      root.classList.toggle("dark", resolved !== "light");
+      root.style.colorScheme = resolved === "light" ? "light" : "dark";
     };
     apply();
     mq.addEventListener("change", apply);
@@ -51,8 +57,8 @@ function usePageStatus(): void {
     }
     const bad = failed + blocked;
     document.title = bad > 0 ? `(${bad}) Muster Office` : warn > 0 ? `· Muster Office` : "Muster Office";
-    const tone = bad > 0 ? "#ff6b6b" : warn > 0 ? "#f0b64a" : "#5fd38d";
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='#12141f'/><rect x='3' y='4' width='10' height='6' fill='#4fd1c5'/><rect x='6' y='11' width='4' height='2' fill='#e8b04a'/><rect x='10' y='0' width='6' height='6' fill='${tone}'/></svg>`;
+    const tone = bad > 0 ? "#ef4444" : warn > 0 ? "#f59e0b" : "#22c55e";
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='#18181b'/><rect x='2' y='3' width='12' height='8' rx='1' fill='none' stroke='#fafafa' stroke-width='1.4'/><rect x='5' y='6' width='3' height='3' fill='#fafafa'/><rect x='6' y='12' width='4' height='2' fill='#fafafa'/><circle cx='12.5' cy='3.5' r='3' fill='${tone}'/></svg>`;
     let link = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
     if (!link) {
       link = document.createElement("link");
@@ -105,10 +111,10 @@ function useShortcuts(): void {
       }
       if (e.key === "Escape") {
         if (st.paletteOpen || st.helpOpen) return; // the dialog handles its own Escape
-        if (!typing) st.select(null);
+        if (!typing && !document.querySelector("[data-radix-popper-content-wrapper], [role='menu']")) st.select(null);
         return;
       }
-      if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (typing || e.ctrlKey || e.metaKey || e.altKey || st.paletteOpen || st.helpOpen) return;
       if (e.key === "/") {
         e.preventDefault();
         st.setPaletteOpen(true);
@@ -140,29 +146,27 @@ function Shell() {
   const showRoster = view === "office" && rosterOpen && hasProject;
 
   return (
-    <div className="app">
-      <a className="skip" href="#main">
-        Skip to content
-      </a>
-      <TopBar />
-      <Vitals />
-      <div className={`workspace${showRoster ? " with-roster" : ""}`}>
-        {showRoster && <Roster />}
-        <main id="main" tabIndex={-1} aria-label={view === "office" ? "Office" : "Board"}>
-          {view === "office" ? <OfficeView /> : <BoardView />}
-          {view === "office" && !rosterOpen && hasProject && (
-            <button type="button" className="roster-tab glass" onClick={() => useOffice.getState().setRosterOpen(true)} aria-label="Show crew list ([)">
-              crew ›
-            </button>
-          )}
-        </main>
-        <SidePanel />
+    <TooltipProvider delayDuration={300}>
+      <div className="app">
+        <a className="skip rounded-md bg-primary px-3 py-1.5 text-primary-foreground" href="#main">
+          Skip to content
+        </a>
+        <TopBar />
+        <Vitals />
+        <div className={`workspace${showRoster ? " with-roster" : ""}`}>
+          {showRoster && <Roster />}
+          <main id="main" tabIndex={-1} aria-label={view === "office" ? "Office" : "Board"}>
+            {view === "office" ? <OfficeView /> : <BoardView />}
+            {view === "office" && !rosterOpen && hasProject && <RosterTab />}
+          </main>
+          <SidePanel />
+        </div>
+        <Timeline />
+        <Toasts />
+        <CommandPalette />
+        <Help />
+        <LiveRegion />
       </div>
-      <Timeline />
-      <Toasts />
-      <CommandPalette />
-      <Help />
-      <LiveRegion />
-    </div>
+    </TooltipProvider>
   );
 }

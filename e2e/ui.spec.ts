@@ -96,7 +96,7 @@ test.describe("the chrome around the office", () => {
   test("failures and blocked work raise a toast whose button takes you there", async ({ page }) => {
     test.setTimeout(70_000);
     await openOffice(page);
-    const first = page.getByTestId("toasts").locator("li.toast").first();
+    const first = page.locator("[data-sonner-toast]").first();
     await expect(first).toBeVisible({ timeout: 45_000 });
     const handle = await first.elementHandle();
     await first.getByRole("button", { name: "Show" }).click();
@@ -129,7 +129,7 @@ test.describe("the chrome around the office", () => {
   test("the settings menu switches theme, and the choice sticks", async ({ page }) => {
     await openOffice(page);
     await page.getByTestId("settings").click();
-    await page.getByRole("combobox", { name: "Theme" }).selectOption("light");
+    await page.getByRole("menuitemradio", { name: "light" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");

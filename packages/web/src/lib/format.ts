@@ -43,3 +43,11 @@ export function modelShort(model: string): string {
 export function plural(n: number, one: string, many = `${one}s`): string {
   return `${n} ${n === 1 ? one : many}`;
 }
+
+/**
+ * Agent labels arrive as "<emoji> Callsign · role". The interface uses icons, never emoji, so the
+ * pictographs are dropped and the readable part is kept.
+ */
+export function plainLabel(label: string): string {
+  return label.replace(/[\p{Extended_Pictographic}\p{Emoji_Presentation}\uFE0F\u200D]/gu, "").replace(/\s+/g, " ").trim();
+}

@@ -1,10 +1,31 @@
+import {
+  BadgeCheck,
+  BellRing,
+  CircleCheck,
+  CircleDashed,
+  CircleHelp,
+  CircleX,
+  DoorOpen,
+  Flag,
+  History,
+  LogIn,
+  Moon,
+  OctagonX,
+  PackageCheck,
+  Paperclip,
+  Play,
+  FileText,
+  RotateCw,
+  Unplug,
+  type LucideIcon,
+} from "lucide-react";
 import type { AgentStateOrUnknown, DeskKind, LaneDelivery, OpenKind, Role } from "@muster-office/shared";
 
 /** Presentation metadata shared by the Board, the side panel and the canvas badges. */
 export type Tone = "neutral" | "ok" | "warn" | "bad" | "info" | "ghost";
 
 export interface StateMeta {
-  glyph: string;
+  icon: LucideIcon;
   label: string;
   tone: Tone;
   /** One-line description for tooltips and the screen-reader log. */
@@ -12,20 +33,20 @@ export interface StateMeta {
 }
 
 export const STATE_META: Record<AgentStateOrUnknown, StateMeta> = {
-  planned: { glyph: "◌", label: "planned", tone: "ghost", what: "Row exists; no process yet (empty chair, blueprint on the desk)" },
-  launching: { glyph: "→", label: "launching", tone: "info", what: "Walking in; the pane is starting" },
-  running: { glyph: "▶", label: "running", tone: "ok", what: "Working at the desk" },
-  silent: { glyph: "z", label: "silent", tone: "warn", what: "No output for the nudge window" },
-  nudged: { glyph: "!", label: "nudged", tone: "warn", what: "Owner sent a nudge" },
-  restarted: { glyph: "↻", label: "restarted", tone: "info", what: "Restarted with /new and a re-prompt" },
-  reported: { glyph: "▤", label: "reported", tone: "info", what: "Reported a packet to the desk" },
-  verified: { glyph: "✔", label: "verified", tone: "ok", what: "Packet verified" },
-  landed: { glyph: "⇥", label: "landed", tone: "ok", what: "Packet landed on the conveyor" },
-  closed: { glyph: "×", label: "closed", tone: "ghost", what: "Left the office" },
-  interrupted: { glyph: "≈", label: "interrupted", tone: "warn", what: "Pane gone; ghosted" },
-  restoring: { glyph: "◐", label: "restoring", tone: "info", what: "Materialising back" },
-  failed: { glyph: "✖", label: "failed", tone: "bad", what: "Launch or run failed" },
-  unknown: { glyph: "?", label: "unknown", tone: "neutral", what: "A state this office does not know" },
+  planned: { icon: CircleDashed, label: "planned", tone: "ghost", what: "Row exists; no process yet (empty chair, blueprint on the desk)" },
+  launching: { icon: LogIn, label: "launching", tone: "info", what: "Walking in; the pane is starting" },
+  running: { icon: Play, label: "running", tone: "ok", what: "Working at the desk" },
+  silent: { icon: Moon, label: "silent", tone: "warn", what: "No output for the nudge window" },
+  nudged: { icon: BellRing, label: "nudged", tone: "warn", what: "Owner sent a nudge" },
+  restarted: { icon: RotateCw, label: "restarted", tone: "info", what: "Restarted with /new and a re-prompt" },
+  reported: { icon: FileText, label: "reported", tone: "info", what: "Reported a packet to the desk" },
+  verified: { icon: BadgeCheck, label: "verified", tone: "ok", what: "Packet verified" },
+  landed: { icon: PackageCheck, label: "landed", tone: "ok", what: "Packet landed on the conveyor" },
+  closed: { icon: DoorOpen, label: "closed", tone: "ghost", what: "Left the office" },
+  interrupted: { icon: Unplug, label: "interrupted", tone: "warn", what: "Pane gone; ghosted" },
+  restoring: { icon: History, label: "restoring", tone: "info", what: "Materialising back" },
+  failed: { icon: CircleX, label: "failed", tone: "bad", what: "Launch or run failed" },
+  unknown: { icon: CircleHelp, label: "unknown", tone: "neutral", what: "A state this office does not know" },
 };
 
 export const ROLE_META: Record<Role | "unknown", { label: string; glyph: string }> = {
@@ -37,12 +58,12 @@ export const ROLE_META: Record<Role | "unknown", { label: string; glyph: string 
   unknown: { label: "unknown role", glyph: "?" },
 };
 
-export const DESK_KIND_META: Record<DeskKind, { glyph: string; label: string; tone: Tone }> = {
-  blocked: { glyph: "⛔", label: "blocked", tone: "bad" },
-  approval: { glyph: "✅", label: "approval", tone: "warn" },
-  decision: { glyph: "❓", label: "decision", tone: "warn" },
-  done: { glyph: "🏁", label: "done", tone: "ok" },
-  fyi: { glyph: "📎", label: "fyi", tone: "neutral" },
+export const DESK_KIND_META: Record<DeskKind, { icon: LucideIcon; label: string; tone: Tone }> = {
+  blocked: { icon: OctagonX, label: "blocked", tone: "bad" },
+  approval: { icon: CircleCheck, label: "approval", tone: "warn" },
+  decision: { icon: CircleHelp, label: "decision", tone: "warn" },
+  done: { icon: Flag, label: "done", tone: "ok" },
+  fyi: { icon: Paperclip, label: "fyi", tone: "neutral" },
 };
 
 export const OPEN_KIND_ORDER: readonly OpenKind[] = ["blocked", "approval", "decision"];

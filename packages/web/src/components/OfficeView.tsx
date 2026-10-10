@@ -1,9 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, Clapperboard, ListTree, Loader2, Maximize2, Navigation, ZoomIn, ZoomOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import { backlog, deployName, deskPiles, flowInfo, inFlight, isDeadDesk, jobIsStale, laneDeployLevel, type JobView, type ProjectView } from "@muster-office/shared";
 import { OfficeEngine, targetKey, toSelection } from "../office/engine";
 import type { Target } from "../office/world";
-import { ageOf, fmtKB, modelShort } from "../lib/format";
+import { ageOf, fmtKB, modelShort, plainLabel } from "../lib/format";
 import { DEPLOY_LEVEL_META, RULE_LABEL, STATE_META } from "../lib/meta";
+import { TONE_TEXT } from "../lib/tone";
 import { selectProjectView, useOffice } from "../store";
 import { Director } from "./Director";
 import { useNow } from "./hooks";
@@ -22,7 +28,7 @@ function describe(t: Target, project: ProjectView, jobs: readonly JobView[], now
       const last = project.packets.filter((p) => p.agent === a.name).at(-1);
       const m = STATE_META[a.state];
       return {
-        title: `${a.label || a.name}`,
+        title: plainLabel(a.label) || a.name,
         lines: [
           `${a.role} · ${m.label}: ${m.what}`,
           `${modelShort(a.model)} · thinking ${a.thinking ?? "default"}`,
@@ -71,7 +77,7 @@ function describe(t: Target, project: ProjectView, jobs: readonly JobView[], now
         lines: [
           ...(piles.length ? piles.map((p) => `${p.kind}: ${p.count} open · oldest ${Math.round(p.oldestMs / 60000)}m`) : ["inbox clear"]),
           ...(pk.length ? [`packets waiting: ${pk.map((p) => p.short).join(", ")}`] : []),
-          ...(dead ? ["☠ no live desk (catalog-derived)"] : []),
+          ...(dead ? ["no live desk (catalog-derived)"] : []),
         ],
       };
     }
@@ -111,11 +117,12 @@ function Minimap({ engineRef, attach }: { engineRef: React.RefObject<OfficeEngin
     eng.centerOn(p.x, p.y);
   };
   return (
-    <div className="minimap glass" data-testid="minimap">
+    <div className="minimap absolute bottom-3 right-3 z-[5] rounded-lg border bg-card p-1 shadow-sm" data-testid="minimap">
       <canvas
         ref={attach}
         aria-label="Minimap: click or drag to move the view"
         role="img"
+        className="block rounded-sm"
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
           move(e);
@@ -207,54 +214,71 @@ export function OfficeView() {
         {summary}
       </p>
       {!loaded && (
-        <div className="office-empty boot">
-          <span className="boot-logo" aria-hidden="true" />
-          <span>Opening the office…</span>
+        <div className="pointer-events-none absolute inset-0 grid place-items-center">
+          <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground">
+            <Loader2 className="size-5 animate-spin" aria-hidden="true" />
+            Opening the office…
+          </div>
         </div>
       )}
-      {loaded && !project && <div className="office-empty muted">No project to show. Muster has not registered any, or the registry is empty.</div>}
+      {loaded && !project && <div className="pointer-events-none absolute inset-0 grid place-items-center text-muted-foreground">No project to show. Muster has not registered any, or the registry is empty.</div>}
       {director && <Director />}
-      <div className="hud glass" role="group" aria-label="Camera">
-        <button type="button" className={director ? "on" : ""} aria-pressed={director} onClick={() => setDirector(!director)} title="Director: the camera flies to the action by itself, for a wall display (D)">
-          auto
-        </button>
+      <div className="absolute right-3 top-3 z-[5] flex items-center gap-0.5 rounded-lg border bg-card p-0.5 shadow-sm" role="group" aria-label="Camera">
+        <Button type="button" variant={director ? "default" : "ghost"} size="sm" className="h-7 gap-1.5 px-2" aria-pressed={director} onClick={() => setDirector(!director)} title="Director: the camera flies to the action by itself, for a wall display (D)">
+          <Clapperboard /> auto
+        </Button>
         {selected?.type === "agent" && (
-          <button type="button" className={follow ? "on" : ""} aria-pressed={follow} onClick={() => setFollow(!follow)} title="Keep the camera on the selected agent (F)">
-            follow
-          </button>
+          <Button type="button" variant={follow ? "default" : "ghost"} size="sm" className="h-7 gap-1.5 px-2" aria-pressed={follow} onClick={() => setFollow(!follow)} title="Keep the camera on the selected agent (F)">
+            <Navigation /> follow
+          </Button>
         )}
-        <button type="button" onClick={() => nudge((e) => e.setZoom(e.getZoom() + 1))} aria-label="Zoom in">
-          +
-        </button>
-        <span className="hud-zoom" aria-live="off">
-          {zoom}×
+        <Separator orientation="vertical" className="mx-0.5 h-4" />
+        <Button type="button" variant="ghost" size="icon-sm" className="size-7" onClick={() => nudge((e) => e.setZoom(e.getZoom() - 1))} aria-label="Zoom out">
+          <ZoomOut />
+        </Button>
+        <span className="min-w-8 text-center font-mono text-xs" aria-live="off">
+          {zoom}x
         </span>
-        <button type="button" onClick={() => nudge((e) => e.setZoom(e.getZoom() - 1))} aria-label="Zoom out">
-          −
-        </button>
-        <button type="button" onClick={() => nudge((e) => (e.fit(), e.wake()))} aria-label="Fit to window">
-          fit
-        </button>
+        <Button type="button" variant="ghost" size="icon-sm" className="size-7" onClick={() => nudge((e) => e.setZoom(e.getZoom() + 1))} aria-label="Zoom in">
+          <ZoomIn />
+        </Button>
+        <Button type="button" variant="ghost" size="icon-sm" className="size-7" onClick={() => nudge((e) => (e.fit(), e.wake()))} aria-label="Fit to window" title="Fit the whole floor">
+          <Maximize2 />
+        </Button>
       </div>
       {minimap && loaded && project && <Minimap engineRef={engineRef} attach={attachMini} />}
-      <details className="legend glass">
-        <summary>legend</summary>
-        <ul>
-          {Object.entries(STATE_META)
-            .filter(([k]) => k !== "unknown")
-            .map(([k, m]) => (
-              <li key={k}>
-                <code>{k.slice(0, 3).toUpperCase()}</code> {m.label} — {m.what}
-              </li>
-            ))}
-        </ul>
-        <p className="small muted">Flames: heat from kind weight (blocked 3, approval 2, decision 1) and log age. Skull: no live desk.</p>
-      </details>
+      <Collapsible className="absolute left-3 top-3 z-[5] max-w-sm rounded-lg border bg-card text-xs shadow-sm max-sm:hidden">
+        <CollapsibleTrigger asChild>
+          <Button type="button" variant="ghost" size="sm" className="h-7 gap-1.5 px-2 text-muted-foreground">
+            <ListTree /> Legend <ChevronDown className="size-3" />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="border-t px-2.5 py-2">
+          <ul className="m-0 grid list-none gap-1 p-0">
+            {Object.entries(STATE_META)
+              .filter(([k]) => k !== "unknown")
+              .map(([k, m]) => {
+                const Icon = m.icon;
+                return (
+                  <li key={k} className="flex items-start gap-1.5">
+                    <Icon aria-hidden="true" className={cn("mt-0.5 size-3.5 shrink-0", TONE_TEXT[m.tone])} />
+                    <span>
+                      <span className="font-medium">{m.label}</span> <span className="text-muted-foreground">{m.what}</span>
+                    </span>
+                  </li>
+                );
+              })}
+          </ul>
+          <p className="mt-2 text-muted-foreground">Flames: heat from kind weight (blocked 3, approval 2, decision 1) and log age. Skull: no live desk.</p>
+        </CollapsibleContent>
+      </Collapsible>
       {hover && tip && (
-        <div className="tooltip glass" role="tooltip" style={{ left: hover.x + 14, top: hover.y + 14 }}>
-          <strong>{tip.title}</strong>
+        <div className="pointer-events-none absolute z-20 max-w-[21rem] rounded-md border bg-popover px-2.5 py-1.5 text-xs leading-snug text-popover-foreground shadow-md" role="tooltip" style={{ left: hover.x + 14, top: hover.y + 14 }}>
+          <strong className="mb-0.5 block text-[0.8125rem] font-semibold">{tip.title}</strong>
           {tip.lines.map((l, i) => (
-            <div key={i}>{l}</div>
+            <div key={i} className="break-words text-muted-foreground">
+              {l}
+            </div>
           ))}
         </div>
       )}

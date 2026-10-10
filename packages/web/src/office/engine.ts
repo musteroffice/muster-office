@@ -311,7 +311,7 @@ export class OfficeEngine {
     const g = this.g;
     const s = this.scale();
     if (this.bgAge++ % 60 === 0) {
-      const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim() || this.bg;
+      const bg = getComputedStyle(document.documentElement).getPropertyValue("--canvas").trim() || this.bg;
       if (bg !== this.bg) this.voidKey = "";
       this.bg = bg;
       this.lightBg = isLight(this.bg);

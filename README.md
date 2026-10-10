@@ -18,6 +18,11 @@ It is built to be left on a second monitor: a **vital-signs strip** (flow, crew,
 a **crew list** with a portrait per agent, **alerts** that take you to their cause, a **command palette**
 (`Ctrl/⌘ K`), a **minimap**, and a **director mode** that flies the camera to the action by itself.
 
+The interface around the canvas is built on [shadcn/ui](https://ui.shadcn.com) (new-york style, zinc
+palette) with Tailwind v4, Radix primitives, cmdk, Sonner and [Lucide](https://lucide.dev) icons. There
+are no emoji anywhere in it: every state, desk kind and event has a Lucide icon plus a word, and any
+emoji that arrives in Muster's own agent labels is dropped when displayed.
+
 > **Read-only by construction.** The server binds to `127.0.0.1`, has no write endpoints, runs no
 > commands, and never opens a file for writing. See [Security model](#security-model).
 
@@ -209,7 +214,7 @@ npm run dev          # esbuild watch + node --watch server + Vite with a proxy (
 ```
 packages/shared   types, tolerant parsers, derivations (flow line, WIP, desk heat), diff/apply protocol, demo script
 packages/server   SafeReader, JSONL tailer, model, watchers, SSE, host guard, CLI, demo source
-packages/web      React UI, Zustand store, SSE client, the office (layout, A*, sprites, world, renderer, engine)
+packages/web      React + shadcn/ui, Zustand store, SSE client, the office (layout, A*, sprites, world, renderer, engine)
 e2e/              Playwright smoke, UI, live-file and perf tests
 scripts/          build-server, dev, screenshot, fixture-home
 docs/             data-contract, decisions, sprites

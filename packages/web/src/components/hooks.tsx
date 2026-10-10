@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import type { AgentStateOrUnknown } from "@muster-office/shared";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { STATE_META, type Tone } from "../lib/meta";
+import { TONE_BADGE } from "../lib/tone";
 
 /** A single shared 1 Hz clock so every relative age ticks together and stops when the tab is hidden. */
 const listeners = new Set<(now: number) => void>();
@@ -83,21 +86,20 @@ export function clearBodyCache(): void {
 
 export function Tag({ tone = "neutral", children, title }: { tone?: Tone; children: React.ReactNode; title?: string }) {
   return (
-    <span className={`tag tone-${tone}`} title={title}>
+    <Badge variant="outline" data-tone={tone} title={title} className={cn("rounded-md px-1.5 py-0 text-xs font-normal", TONE_BADGE[tone])}>
       {children}
-    </span>
+    </Badge>
   );
 }
 
 export function StateBadge({ state, raw }: { state: AgentStateOrUnknown; raw?: string | undefined }) {
   const m = STATE_META[state];
+  const Icon = m.icon;
   return (
-    <span className={`tag tone-${m.tone} state-badge`} title={m.what}>
-      <span aria-hidden="true" className="glyph">
-        {m.glyph}
-      </span>
+    <Badge variant="outline" data-tone={m.tone} title={m.what} className={cn("gap-1 rounded-md px-1.5 py-0 text-xs font-medium", TONE_BADGE[m.tone])}>
+      <Icon aria-hidden="true" className="size-3" />
       {raw && state === "unknown" ? raw : m.label}
-    </span>
+    </Badge>
   );
 }
 
